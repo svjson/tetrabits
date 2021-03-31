@@ -1,0 +1,12 @@
+{
+  "name": "tetrabits",
+  "main": "tetrabits.asm",
+  "include": [
+    "*.asm",
+    "**/*.bin",
+    "**/*.raw"
+  ],
+  "exclude": [
+    ".git/"
+  ]
+}
