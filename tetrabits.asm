@@ -4,10 +4,8 @@
 .cdef "az", $01
 
 
-
 PLAYER1__CURRENT_TETROMINOE_CELLS = $0208
 PLAYER1__FOUND_LINES = $0210
-
 
 PLAYER2__CURRENT_TETROMINOE_CELLS = $0238
 PLAYER2__FOUND_LINES = $0240
@@ -99,7 +97,13 @@ PLR__CURRENT_TETROMINO_TYPE = $02e4
 PLAYER1__CURRENT_TETROMINO_TYPE = $02e4
 PLAYER2__CURRENT_TETROMINO_TYPE = $02e5
 
+PLR__LINES_LO = $02f0
+PLAYER1__LINES_LO = $02f0
+PLAYER2__LINES_LO = $02f1
 
+PLR__LINES_HI = $02f2
+PLAYER1__LINES_HI = $02f2
+PLAYER2__LINES_HI = $02f3
 
 ITERATOR = $fd
 
@@ -192,6 +196,10 @@ ANIM_SPEED = #$03
                                     sta PLAYER1__MOVE_Y
                                     sta PLAYER2__MOVE_X
                                     sta PLAYER2__MOVE_Y
+                                    sta PLAYER1__LINES_HI
+                                    sta PLAYER1__LINES_LO
+                                    sta PLAYER2__LINES_HI
+                                    sta PLAYER2__LINES_LO
 
                                     lda #$ff
                                     sta PLAYER1__FOUND_LINES
@@ -226,7 +234,16 @@ ANIM_SPEED = #$03
                                     ldy PLAYER1__NEXTBOX_OFFSET
                                     jsr draw_nextbox
 
+                                    ldx PLAYER1__NEXTBOX_OFFSET
+                                    ldy #$09
+                                    lda #<text_LINES
+                                    sta $24
+                                    lda #>text_LINES
+                                    sta $25
+                                    jsr print_text
+
                                     ldx #$00
+                                    jsr print_player_line_count
                                     jsr prepare_next_tetromino
                                     jsr roll_new_tetronimo
 
@@ -245,7 +262,16 @@ ANIM_SPEED = #$03
                                     ldy PLAYER2__NEXTBOX_OFFSET
                                     jsr draw_nextbox
 
+                                    ldx PLAYER2__NEXTBOX_OFFSET
+                                    ldy #$09
+                                    lda #<text_LINES
+                                    sta $24
+                                    lda #>text_LINES
+                                    sta $25
+                                    jsr print_text
+
                                     ldx #$01
+                                    jsr print_player_line_count
                                     jsr prepare_next_tetromino
                                     jsr roll_new_tetronimo
 
@@ -697,7 +723,9 @@ animate_player_lines:
                                     dec PLR__ANIM_FRAME,x               ; Decrease animation frame counter
                                     bne do_animate_lines                ; If it is not zero, move to animate lines
 
-                                    jsr shift_well_contents             ;
+                                    jsr add_to_player_line_count
+
+                                    jsr shift_well_contents
                                     ldx CURRENT_PLAYER
                                     jsr roll_new_tetronimo
 
@@ -854,6 +882,166 @@ not_a_line                          dex
 
 tmp_well_offset                     .byte $00
 tmp_cell_y                          .byte $00
+
+; +---------------------------------------------------------------------------+
+; | ADD NUMBER OF FORMED LINES TO PLAYERS LINE COUNT                          |
+; | add_to_player_line_count                                                  |
+; +---------------------------------------------------------------------------+
+; | Adds to the line score of Player X using Binary-coded decimal mode, and   |
+; | then prints the result to the screen                                      |
+; +---------------------------------------------------------------------------+
+; | Arguments:                                                                |
+; +---------------------------------------------------------------------------+
+; | X               - Player. $00=Player 1, $01=Player 2                      |
+; +---------------------------------------------------------------------------+
+add_to_player_line_count:
+                                    sei
+                                    sed
+                                    clc
+                                    lda PLR__LINES_LO,x
+                                    adc PLR__LINES_TO_CLEAR, x
+                                    sta PLR__LINES_LO,x
+                                    lda PLR__LINES_HI,x
+                                    adc #$00
+                                    sta PLR__LINES_HI,x
+                                    cld
+                                    cli
+
+; +---------------------------------------------------------------------------+
+; | PRINT PLAYER LINE COUNT TO SCREEN                                         |
+; | print_player_line_count                                                   |
+; +---------------------------------------------------------------------------+
+; | Prints line count to screen                                               |
+; +---------------------------------------------------------------------------+
+; | Arguments:                                                                |
+; +---------------------------------------------------------------------------+
+; | X               - Player. $00=Player 1, $01=Player 2                      |
+; +---------------------------------------------------------------------------+
+print_player_line_count
+                                    ldy #$14
+                                    lda table_scr_line, y
+                                    sta $30
+                                    lda table_scr_line+1, y
+                                    sta $31
+
+                                    clc
+                                    lda #$02
+                                    adc PLR__NEXTBOX_OFFSET,x
+                                    adc $30
+                                    sta $30
+                                    lda $31
+                                    adc #$00
+                                    sta $31
+
+                                    lda PLR__LINES_HI,x
+                                    beq print_line_eval_lo_byte
+                                    and #%11110000
+                                    beq print_line_count_digit_2
+
+print_line_count_digit_1            clc
+                                    lda PLR__LINES_HI,x
+                                    lsr
+                                    lsr
+                                    lsr
+                                    lsr
+                                    adc #$30
+                                    ldy #$00
+                                    sta ($30),y
+
+print_line_count_digit_2            clc
+                                    lda PLR__LINES_HI,x
+                                    and #%00001111
+                                    adc #$30
+                                    ldy #$01
+                                    sta ($30),y
+
+                                    jmp print_line_count_digit_3
+
+print_line_eval_lo_byte             lda PLR__LINES_LO,x
+                                    and #%11110000
+                                    beq print_line_count_digit_4
+
+print_line_count_digit_3            lda PLR__LINES_LO,x
+                                    lsr
+                                    lsr
+                                    lsr
+                                    lsr
+                                    clc
+                                    adc #$30
+                                    ldy #$02
+                                    sta ($30),y
+
+print_line_count_digit_4            lda PLR__LINES_LO,x
+                                    and #%00001111
+                                    adc #$30
+                                    ldy #$03
+                                    sta ($30),y
+                                    rts
+
+
+; +---------------------------------------------------------------------------+
+; | PRINT TEXT STRING TO SCREEN WITH COLOR                                    |
+; | print_text                                                                |
+; +---------------------------------------------------------------------------+
+; | Prints a text string to the screen and color to color RAM, reading from a |
+; | data structure in memory at pointer $24                                   |
+; +---------------------------------------------------------------------------+
+; | Arguments:                                                                |
+; +---------------------------------------------------------------------------+
+; | X           - Screen column to print at                                   |
+; | Y           - Screen row to print at                                      |
+; | $24-$25     - Pointer to text data structure in memory                    |
+; |                 Byte 0 - Color                                            |
+; |                 Byte 1 - String length                                    |
+; |                 Byte 2.. Text data                                        |
+; +---------------------------------------------------------------------------+
+print_text:
+                                    stx $30
+                                    tya
+                                    asl
+                                    tay
+                                    clc
+                                    lda table_scr_line,y
+                                    adc $30
+                                    sta $30
+                                    sta $28
+                                    lda table_scr_line+1,y
+                                    adc #$00
+                                    sta $31
+                                    adc #$d4
+                                    sta $29
+
+                                    ldy #$00
+                                    lda ($24),y
+                                    sta text_color
+                                    iny
+                                    lda ($24),y
+                                    tax
+
+                                    lda $24
+                                    clc
+                                    adc #$02
+                                    sta $24
+                                    lda $25
+                                    adc #$00
+                                    sta $25
+
+                                    ldy #$00
+print_text_loop                     lda ($24),y
+                                    sta ($30),y
+                                    lda text_color
+                                    sta ($28),y
+                                    iny
+                                    dex
+                                    bne print_text_loop
+
+                                    rts
+
+
+text_color                          .byte $00
+
+
+
 
 ; +---------------------------------------------------------------------------+
 ; | PREPARE NEXT TETROMINO                                                    |
@@ -1390,7 +1578,21 @@ set_30_ptr_to_tetro_buffer:
 
                                     rts
 
-
+; +---------------------------------------------------------------------------+
+; | DRAW CONTAINER BOX FOR NEXT TETROMINO                                     |
+; | draw_nextbox                                                              |
+; +---------------------------------------------------------------------------+
+; | Draws one 6x6 container box                                               |
+; +---------------------------------------------------------------------------+
+; | Arguments:                                                                |
+; +---------------------------------------------------------------------------+
+; | Y          - The screen column to begin drawing at, ie the X value of     |
+; |              of the left border.                                          |
+; +---------------------------------------------------------------------------+
+; | Affects:                                                                  |
+; +---------------------------------------------------------------------------+
+; | $30, $31                                                                  |
+; +---------------------------------------------------------------------------+
 draw_nextbox:
                                     tya
                                     clc
@@ -1588,6 +1790,9 @@ well_offsets
 nextbox_offsets                     .byte $04, $00
                                     .byte $00, $22
 
+text_LINES                          .byte $04, $05
+                                    .text "LINES"
+
 table_scr_line:
                                     .word SCREEN_RAM
                                     .word SCREEN_RAM+40
@@ -1681,8 +1886,6 @@ nextbox_data                        .byte $00, $85
                                     .byte $01, $83
                                     .byte $01, $83
                                     .byte $01, $84
-
-
 
 table_tetromino_appearance:
                                     .byte $40, $02
