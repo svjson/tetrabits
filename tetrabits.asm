@@ -3,21 +3,11 @@
 .cdef "AZ", $01
 .cdef "az", $01
 
-PLAYER1__CURRENT_TETROMINOE_TYPE = $0200
 
-PLAYER1__NEXT_TETROMINOE_TYPE = $0203
-PLAYER1__NEXT_TETROMINOE_FACE = $0204
-PLAYER1__NEXT_TETROMINOE_COLOR = $0205
 
 PLAYER1__CURRENT_TETROMINOE_CELLS = $0208
 PLAYER1__FOUND_LINES = $0210
 
-
-PLAYER2__CURRENT_TETROMINOE_TYPE = $0230
-
-PLAYER2__NEXT_TETROMINOE_TYPE = $0233
-PLAYER2__NEXT_TETROMINOE_FACE = $0234
-PLAYER2__NEXT_TETROMINOE_COLOR = $0235
 
 PLAYER2__CURRENT_TETROMINOE_CELLS = $0238
 PLAYER2__FOUND_LINES = $0240
@@ -33,25 +23,25 @@ GAME_MODE = $02b0       ; Bit #0 - 0=1 Player Mode / 1=2 Player Mode,
 
 ;; PLAYER VARIABLES, plr#-indexed
 
-PLR__TETROMINOE_X = $02c0
-PLAYER1__TETROMINOE_X = $02c0
-PLAYER2__TETROMINOE_X = $02c1
+PLR__TETROMINO_X = $02c0
+PLAYER1__TETROMINO_X = $02c0
+PLAYER2__TETROMINO_X = $02c1
 
-PLR__TETROMINOE_Y = $02c2
-PLAYER1__TETROMINOE_Y = $02c2
-PLAYER2__TETROMINOE_Y = $02c3
+PLR__TETROMINO_Y = $02c2
+PLAYER1__TETROMINO_Y = $02c2
+PLAYER2__TETROMINO_Y = $02c3
 
 PLR__WELL_OFFSET = $02c4
 PLAYER1__WELL_OFFSET = $02c4
 PLAYER2__WELL_OFFSET = $02c5
 
-PLR__CURRENT_TETROMINOE_FACE = $02c6
-PLAYER1__CURRENT_TETROMINOE_FACE = $02c6
-PLAYER2__CURRENT_TETROMINOE_FACE = $02c7
+PLR__CURRENT_TETROMINO_FACE = $02c6
+PLAYER1__CURRENT_TETROMINO_FACE = $02c6
+PLAYER2__CURRENT_TETROMINO_FACE = $02c7
 
-PLR__CURRENT_TETROMINOE_COLOR = $02c8
-PLAYER1__CURRENT_TETROMINOE_COLOR = $02c8
-PLAYER2__CURRENT_TETROMINOE_COLOR = $02c9
+PLR__CURRENT_TETROMINO_COLOR = $02c8
+PLAYER1__CURRENT_TETROMINO_COLOR = $02c8
+PLAYER2__CURRENT_TETROMINO_COLOR = $02c9
 
 PLR__ANIM_FRAME = $02ca
 PLAYER1__ANIM_FRAME = $02ca
@@ -89,6 +79,27 @@ PLR__LINES_TO_CLEAR = $02da
 PLAYER1__LINES_TO_CLEAR = $02da
 PLAYER2__LINES_TO_CLEAR = $02db
 
+PLR__NEXTBOX_OFFSET = $02dc
+PLAYER1__NEXTBOX_OFFSET = $02dc
+PLAYER2__NEXTBOX_OFFSET = $02dd
+
+PLR__NEXT_TETROMINO_TYPE = $02de
+PLAYER1__NEXT_TETROMINO_TYPE = $02de
+PLAYER2__NEXT_TETROMINO_TYPE = $02df
+
+PLR__NEXT_TETROMINO_FACE = $02e0
+PLAYER1__NEXT_TETROMINO_FACE = $02e0
+PLAYER2__NEXT_TETROMINO_FACE = $02e1
+
+PLR__NEXT_TETROMINO_COLOR = $02e2
+PLAYER1__NEXT_TETROMINO_COLOR = $02e2
+PLAYER2__NEXT_TETROMINO_COLOR = $02e3
+
+PLR__CURRENT_TETROMINO_TYPE = $02e4
+PLAYER1__CURRENT_TETROMINO_TYPE = $02e4
+PLAYER2__CURRENT_TETROMINO_TYPE = $02e5
+
+
 
 ITERATOR = $fd
 
@@ -100,14 +111,13 @@ DRAW_TETR__COLOR = $0301
 DRAW_TETR__X = $0302
 DRAW_TETR__Y = $0303
 
-
 RAND_MAX = $0304
 
 CURRENT_PLAYER = $0305
 
 SCREEN_RAM = $0400
 
-ANIM_SPEED = #$05
+ANIM_SPEED = #$03
 
 *=$0801
 .byte $0c, $08, $0a, $00, $9e, $20
@@ -156,16 +166,21 @@ ANIM_SPEED = #$05
 ; | START GAME                                                                |
 ; | start_game                                                                |
 ; +---------------------------------------------------------------------------+
-; |                                                                           |
-; |                                                                           |
+; | Initializes all player variables, draws wells and next-boxes.             |
+; | Set up of player 2 variables depends on if the 2 player-mode bit is set   |
+; | in GAME_MODE.                                                             |
+; +---------------------------------------------------------------------------+
+; | Depends on:                                                               |
+; +---------------------------------------------------------------------------+
+; | GAME_MODE                                                                 |
 ; +---------------------------------------------------------------------------+
                                     jsr clear_screen
 
-                                    lda #$30
+                                    lda #$20
                                     sta PLAYER1__FALL_SPEED
                                     sta PLAYER1__ACTUAL_FALL_SPEED
                                     sta PLAYER2__FALL_SPEED
-                                    sta PLAYER2__ACTUAL_FALL_SPEEd
+                                    sta PLAYER2__ACTUAL_FALL_SPEED
 
                                     lda PLAYER1__FALL_SPEED
                                     sta PLAYER1__FALL_COUNTER
@@ -199,15 +214,25 @@ ANIM_SPEED = #$05
                                     lda well_offsets+1, y
                                     sta PLAYER2__WELL_OFFSET
 
+                                    lda nextbox_offsets, y
+                                    sta PLAYER1__NEXTBOX_OFFSET
+
+                                    lda nextbox_offsets+1, y
+                                    sta PLAYER2__NEXTBOX_OFFSET
+
                                     ldy PLAYER1__WELL_OFFSET
                                     jsr draw_well
 
-                                    ldx #$00
-                                    jsr prepare_next_tetrominoe
+                                    ldy PLAYER1__NEXTBOX_OFFSET
+                                    jsr draw_nextbox
 
-                                    lda PLAYER1__CURRENT_TETROMINOE_FACE
+                                    ldx #$00
+                                    jsr prepare_next_tetromino
+                                    jsr roll_new_tetronimo
+
+                                    lda PLAYER1__CURRENT_TETROMINO_FACE
                                     sta DRAW_TETR__CHAR
-                                    lda PLAYER1__CURRENT_TETROMINOE_COLOR
+                                    lda PLAYER1__CURRENT_TETROMINO_COLOR
                                     sta DRAW_TETR__COLOR
                                     ldx #$00
                                     jsr draw_player_tetromino
@@ -217,12 +242,16 @@ ANIM_SPEED = #$05
                                     beq no_plr2_setup
                                     jsr draw_well
 
-                                    ldx #$01
-                                    jsr prepare_next_tetrominoe
+                                    ldy PLAYER2__NEXTBOX_OFFSET
+                                    jsr draw_nextbox
 
-                                    lda PLAYER2__CURRENT_TETROMINOE_FACE
+                                    ldx #$01
+                                    jsr prepare_next_tetromino
+                                    jsr roll_new_tetronimo
+
+                                    lda PLAYER2__CURRENT_TETROMINO_FACE
                                     sta DRAW_TETR__CHAR
-                                    lda PLAYER2__CURRENT_TETROMINOE_COLOR
+                                    lda PLAYER2__CURRENT_TETROMINO_COLOR
                                     sta DRAW_TETR__COLOR
                                     ldx #$01
                                     jsr draw_player_tetromino
@@ -235,15 +264,16 @@ no_plr2_setup                       jmp main_game_loop
 ; | WAIT UNTIL START OF NEXT FRAME                                            |
 ; | wait_until_next_frame                                                     |
 ; +---------------------------------------------------------------------------+
-; |                                                                           |
-; |                                                                           |
+; | Keeps program in a loop until raster line $001 by polling the VIC raster  |
+; | registers.                                                                |
 ; +---------------------------------------------------------------------------+
 wait_until_next_frame:
-                                    lda $d011
+                                    lda $d011                       ; Loop until the raster line hi-bit is cleared
                                     and #%10000000
                                     bne wait_until_next_frame
 
-                                    lda $d012
+                                    lda $d012                       ; Loop until the raster line lo-byte is $01
+                                    cmp #$01
                                     bne wait_until_next_frame
                                     rts
 
@@ -251,8 +281,7 @@ wait_until_next_frame:
 ; | MAIN GAME LOOP                                                            |
 ; | main_game_loop                                                            |
 ; +---------------------------------------------------------------------------+
-; |                                                                           |
-; |                                                                           |
+; | Main loop that cycles through the four main steps of a game frame.        |
 ; +---------------------------------------------------------------------------+
 main_game_loop:
                                     jsr wait_until_next_frame
@@ -268,8 +297,12 @@ main_game_loop:
 ; | ADVANCE TETROMINOES                                                       |
 ; | advance_tetrominoes                                                       |
 ; +---------------------------------------------------------------------------+
-; |                                                                           |
-; |                                                                           |
+; | Calls advance_player_tetronimo for each player in turn                    |
+; +---------------------------------------------------------------------------+
+; | Depends on:                                                               |
+; +---------------------------------------------------------------------------+
+; | GAME_MODE           - Controls if advance_player_tetronimo is to be       |
+; |                       for Player 2 in addition to for Player 1            |
 ; +---------------------------------------------------------------------------+
 advance_tetrominoes:
                                     ldx #$00                                ; Advance tetromino for player 1
@@ -289,12 +322,35 @@ advance_tetrominoes_end             rts
 ; | ADVANCE PLAYER TETROMINO                                                  |
 ; | advance_player_tetromino                                                  |
 ; +---------------------------------------------------------------------------+
+; | Advances the tetronimo of Player X downwards through the well, and        |
+; | checks for collision. If a collision is detected during downwards         |
+; | movement, then placement of tetronimo and checking for lines is initiated |
 ; |                                                                           |
+; | Collision detection is done by removing the tetronimo from the screen,    |
+; | copying the coordinates and contents of the players tetronimo buffer and  |
+; | coordinates(with Y+=1) to the predicate ditos. If any of the screen       |
+; | positions that make up the new location of the tetronimo, then a          |
+; | collision is detected and execution branches out to place_tetronimo.      |
 ; +---------------------------------------------------------------------------+
 ; | Arguments:                                                                |
 ; +---------------------------------------------------------------------------+
-; | X           - Player # - $00=Player 1, $01=Player 2                       |
+; | X                   - Player # - $00=Player 1, $01=Player 2               |
+; +---------------------------------------------------------------------------+
+; | Depends on:                                                               |
+; +---------------------------------------------------------------------------+
+; | PLR__ANIM_FRAME,X   - Any non-zero value cancels execution                |
 ; |                                                                           |
+; | PLR__FALL_SPEED,X   - Determines the value that PLR__FALL_COUNTER,X is    |
+; |                       reset to after reaching zero. In other words, with  |
+; |                       interval downwards advancement happens.             |
+; |                                                                           |
+; | PLR__ANIM_FRAME,X   - Any non-zero value cancels execution                |
+; +---------------------------------------------------------------------------+
+; | Affects:                                                                  |
+; +---------------------------------------------------------------------------+
+; | X                   - Is overwritten                                      |
+; |                                                                           |
+; | PLR__FALL_COUNTER,X - Is decreased by one (and reset if it reaches 0)     |
 ; +---------------------------------------------------------------------------+
 advance_player_tetromino:
                                     lda PLR__ANIM_FRAME,x               ; Check if an animation is in progress for player
@@ -316,23 +372,23 @@ advance_player_tetromino:
 
                                     ldx CURRENT_PLAYER                  ; Retrieve the player # for the player
 
-                                    lda PLR__TETROMINOE_X,x             ; Load players X position and store it to the
+                                    lda PLR__TETROMINO_X,x              ; Load players X position and store it to the
                                     sta PREDICATE_TETROMINOE_X          ; test/predicate block X
 
-                                    lda PLR__TETROMINOE_Y,x             ; Load players Y position and store it to the
+                                    lda PLR__TETROMINO_Y,x              ; Load players Y position and store it to the
                                     sta PREDICATE_TETROMINOE_Y          ; test/predicate block Y, and then increment it by one
                                     inc PREDICATE_TETROMINOE_Y          ; as it's the Y+1 position that we are to evaluate
 
                                     jsr copy_buffer_to_predicate        ; Copy players tetromino buffer to the test/predicate buffer
                                     jsr evaluate_target_pos             ; and evaluate if there is any collision at the test location
+                                    bpl place_tetrominoe                ; Branch out to place_tetromino if a collision has occurred
 
-                                    bpl place_tetrominoe
-                                    ldx CURRENT_PLAYER
-                                    inc PLR__TETROMINOE_Y,x
+                                    ldx CURRENT_PLAYER                  ; Otherwise, increase the Y coordinate of the tetromino
+                                    inc PLR__TETROMINO_Y,x
 
-draw_advanced_tetro                 lda PLR__CURRENT_TETROMINOE_FACE,x
+advance__draw_tetro_in_new_pos      lda PLR__CURRENT_TETROMINO_FACE,x   ; And draw it back to the screen
                                     sta DRAW_TETR__CHAR
-                                    lda PLR__CURRENT_TETROMINOE_COLOR,x
+                                    lda PLR__CURRENT_TETROMINO_COLOR,x
                                     sta DRAW_TETR__COLOR
                                     jsr draw_player_tetromino
 
@@ -349,39 +405,45 @@ no_tetro_advancement                rts
 ; +---------------------------------------------------------------------------+
 ; | Arguments:                                                                |
 ; +---------------------------------------------------------------------------+
-; | CURRENT_PLAYER -            $00=Player 1, $01=Player 2                    |
+; | CURRENT_PLAYER            - $00=Player 1, $01=Player 2                    |
 ; +---------------------------------------------------------------------------+
-
+; | Affects:                                                                  |
+; +---------------------------------------------------------------------------+
+; | PLR__ANIM_FRAME           - Will be set if any lines are detected         |
+; +---------------------------------------------------------------------------+
 place_tetrominoe
-                                    ldx CURRENT_PLAYER
-                                    lda PLR__CURRENT_TETROMINOE_FACE,x
+                                    ldx CURRENT_PLAYER                      ; Draw the tetromino in its new and now fixed
+                                    lda PLR__CURRENT_TETROMINO_FACE,x       ; location
                                     sta DRAW_TETR__CHAR
-                                    lda PLR__CURRENT_TETROMINOE_COLOR,x
+                                    lda PLR__CURRENT_TETROMINO_COLOR,x
                                     sta DRAW_TETR__COLOR
                                     jsr draw_player_tetromino
 
-                                    ldx CURRENT_PLAYER
-                                    jsr check_for_lines
-                                    beq place_tetr__no_lines
+                                    ldx CURRENT_PLAYER                      ; Restore Player index to X
+                                    jsr check_for_lines                     ; Check if any lines have been formed after
+                                    beq place_tetr__no_lines                ; placing the tetromino
 
-place_tetr__lines_found             ldx CURRENT_PLAYER
-                                    lda #$05
+place_tetr__lines_found             ldx CURRENT_PLAYER                      ; If so, initiate the animation that will
+                                    lda #$05                                ; remove the lines from the screen.
                                     sta PLR__ANIM_FRAME,x
                                     lda ANIM_SPEED
                                     sta PLR__ANIM_COUNTER,x
                                     rts
 
-place_tetr__no_lines                ldx CURRENT_PLAYER
-                                    jsr prepare_next_tetrominoe
+place_tetr__no_lines                ldx CURRENT_PLAYER                      ; Otherwise, just roll the next tetromino into
+                                    jsr roll_new_tetronimo                  ; into the current buffers and randomize a new next.
                                     rts
-
 
 ; +---------------------------------------------------------------------------+
 ; | APPLY PLAYER MOVEMENT                                                     |
 ; | move_tetrominoes                                                          |
 ; +---------------------------------------------------------------------------+
-; |                                                                           |
-; |                                                                           |
+; | Calls move_player_tetronimo for each player in turn.                      |
+; +---------------------------------------------------------------------------+
+; | Depends on:                                                               |
+; +---------------------------------------------------------------------------+
+; | GAME_MODE           - Controls if move_player_tetronimo is to be          |
+; |                       for Player 2 in addition to for Player 1            |
 ; +---------------------------------------------------------------------------+
 move_tetrominoes:
                                     ldx #$00
@@ -398,10 +460,28 @@ move_tetrominoes:
 ; | MOVE PLAYER TETROMINO                                                     |
 ; | move_player_tetromino                                                     |
 ; +---------------------------------------------------------------------------+
-; |                                                                           |
-; |                                                                           |
+; | Evaluates if any player actions have been signalled, and performs them.   |
+; | The actions correspond to joystick movement, but may also have been set   |
+; | by the CPU player routines                                                |
 ; +---------------------------------------------------------------------------+
-
+; | Arguments:                                                                |
+; +---------------------------------------------------------------------------+
+; | X                   - Player # - $00=Player 1, $01=Player 2               |
+; +---------------------------------------------------------------------------+
+; | Depends on:                                                               |
+; +---------------------------------------------------------------------------+
+; | PLR__MOVE_X,x       - Movement in horizontal direction                    |
+; |                        $ff = Left                                         |
+; |                        $00 = No horizontal movement                       |
+; |                        $01 = Right                                        |
+; |                                                                           |
+; | PLR__MOVE_Y,x       - Rotation or speed up downwards advancement          |
+; |                        $ff = Rotate tetronimo                             |
+; |                        $00 = No action                                    |
+; |                        $01 = Speed up advancement                         |
+; |                                                                           |
+; | PLR__ANIM_FRAME,X   - Any non-zero value cancels execution                |
+; +---------------------------------------------------------------------------+
 move_player_tetromino:
                                     lda PLR__ANIM_FRAME, x              ; Check if an animation is in progress for player X,
                                     beq eval_movement_repeat_counter    ; in which case movement is not allowed
@@ -426,11 +506,11 @@ apply_player_movement               stx CURRENT_PLAYER                  ; Keep t
                                     beq no_horizontal_move              ; and skip adjustment of tetronimo X if there is none
 
                                     clc                                 ; Load the X position of the players tetromino and
-                                    lda PLR__TETROMINOE_X,x             ; and apply the non-zero X-movement modifier ($01 or $ff)
+                                    lda PLR__TETROMINO_X,x              ; and apply the non-zero X-movement modifier ($01 or $ff)
                                     adc PLR__MOVE_X,x                   ; then store as predicate X
                                     sta PREDICATE_TETROMINOE_X
 
-                                    lda PLR__TETROMINOE_Y,x             ; Copy X position of the players tetromino to
+                                    lda PLR__TETROMINO_Y,x              ; Copy X position of the players tetromino to
                                     sta PREDICATE_TETROMINOE_Y          ; predicate Y
 
                                     jsr copy_buffer_to_predicate        ; Check if the target position is blocked or not
@@ -439,12 +519,13 @@ apply_player_movement               stx CURRENT_PLAYER                  ; Keep t
                                     bpl no_horizontal_move              ; If the movement is not allowed, then skip movement
 
                                     ldx CURRENT_PLAYER
-                                    clc                                 ; Otherwise apply the modified X coordinate to
-                                    lda PLR__TETROMINOE_X,x             ; the players position
-                                    adc PLR__MOVE_X,x
-                                    sta PLR__TETROMINOE_X,x
 
-                                    lda #$05                            ; Set the repeat counter after successful movement
+                                    clc                                 ; Otherwise apply the modified X coordinate to
+                                    lda PLR__TETROMINO_X,x              ; the players position
+                                    adc PLR__MOVE_X,x
+                                    sta PLR__TETROMINO_X,x
+
+                                    lda #$03                            ; Set the repeat counter after successful movement
                                     sta PLR__REPEAT_COUNTER,x
 
 no_horizontal_move                  ldx CURRENT_PLAYER
@@ -452,9 +533,10 @@ no_horizontal_move                  ldx CURRENT_PLAYER
                                     cmp #$01                            ; If Y-modifier is $01, it means down has been pressed
                                     bne reset_fall_speed
 
-                                    lda #$05                            ; As a result of holding down, well increase the rate
+                                    lda #$03                            ; As a result of holding down, well increase the rate
                                     sta PLR__FALL_SPEED,x               ; at which the tetromino is falling and reset the
                                     sta PLR__FALL_COUNTER,x             ; repeat counter
+                                    lda #$03
                                     sta PLR__REPEAT_COUNTER,x
 
                                     jmp check_rotate_command
@@ -471,28 +553,45 @@ check_rotate_command                lda PLR__MOVE_Y,x                   ; A posi
                                     lda #$08                            ; the rotation command doesn't spill over to next frame
                                     sta PLR__REPEAT_COUNTER,x
 
-move_tetr__restore_tetromino        lda PLR__CURRENT_TETROMINOE_FACE,x
+move_tetr__restore_tetromino        lda PLR__CURRENT_TETROMINO_FACE,x   ; Draw the tetromino back to the screen.
                                     sta DRAW_TETR__CHAR
-                                    lda PLR__CURRENT_TETROMINOE_COLOR,x
+                                    lda PLR__CURRENT_TETROMINO_COLOR,x
                                     sta DRAW_TETR__COLOR
                                     jsr draw_player_tetromino
 
                                     rts
 
-
-
 ; +---------------------------------------------------------------------------+
-; | ROTATE TETROMINOE                                                         |
-; | plr1_rotate_tetrominoe                                                    |
+; | ROTATE TETROMINO                                                          |
+; | rotate_tetromino                                                          |
 ; +---------------------------------------------------------------------------+
+; | Performs clockwise rotation of the current tetromino of Player X if       |
+; | possible, depending on the surrounding screen area. This is done in much  |
+; | the same way as checking if horizontal or vertical movement is possible   |
+; | by first rotating the piece in a temporary buffer and then checking the   |
+; | screen positions of the new shape.                                        |
 ; |                                                                           |
+; | If any of the four tetromino cell positions are non-empty, the action is  |
+; | cancelled.                                                                |
 ; |                                                                           |
+; | Rotation is done by transforming each cell coordinate like so:            |
+; | RotatedX = 3-OriginalY                                                    |
+; | RotatedY = OriginalX                                                      |
+; +---------------------------------------------------------------------------+
+; | Arguments:                                                                |
+; +---------------------------------------------------------------------------+
+; | X                   - Player # - $00=Player 1, $01=Player 2               |
+; +---------------------------------------------------------------------------+
+; | Depends On:                                                               |
+; +---------------------------------------------------------------------------+
+; | PLR__CURRENT_TETROMINO_CELLS      - the buffer containing the shape to    |
+; |                                     rotate                                |
 ; +---------------------------------------------------------------------------+
 rotate_tetromino:
-                                    jsr set_30_ptr_to_tetro_buffer
+                                    jsr set_30_ptr_to_tetro_buffer       ; Set $30 pointer to the tetromino buffer of Player X
 
                                     ldy #$00
-populate_rotate_buffer_loop         lda ($30),y
+populate_rotate_buffer_loop         lda ($30),y                          ; Rotate each cell and store to ROTATE_BUFFER
                                     iny
                                     sta ROTATE_BUFFER,y
                                     lda ($30),y
@@ -507,21 +606,21 @@ populate_rotate_buffer_loop         lda ($30),y
                                     cpy #$08
                                     bne populate_rotate_buffer_loop
 
-                                    lda PLR__TETROMINOE_X,x
-                                    sta PREDICATE_TETROMINOE_X
-                                    lda PLR__TETROMINOE_Y,x
+                                    lda PLR__TETROMINO_X,x               ; Move player coordinates to predicate coordinate
+                                    sta PREDICATE_TETROMINOE_X           ; registers
+                                    lda PLR__TETROMINO_Y,x
                                     sta PREDICATE_TETROMINOE_Y
 
-                                    ldx #$02
+                                    ldx #$02                             ; Copy the rotate buffer into the predicate buffer
                                     jsr copy_buffer_to_predicate
-                                    jsr evaluate_target_pos
+                                    jsr evaluate_target_pos              ; Check if new cell coordinates are all empty
 
-                                    bpl rotate_exit
+                                    bpl rotate_exit                      ; If not, then cancel/exit
 
-                                    ldx CURRENT_PLAYER
-                                    jsr set_30_ptr_to_tetro_buffer
+                                    ldx CURRENT_PLAYER                   ; Restore Player index
+                                    jsr set_30_ptr_to_tetro_buffer       ; Set $30 pointer to the tetromino buffer again
 
-                                    ldy #$07
+                                    ldy #$07                             ; Copy over the rotated cells to the player buffer
 write_rotate_result_loop            lda ROTATE_BUFFER,y
                                     sta ($30),y
                                     dey
@@ -536,8 +635,12 @@ tmp_var                             .byte $00
 ; | ANIMATE_LINES                                                             |
 ; | animate_lines                                                             |
 ; +---------------------------------------------------------------------------+
-; |                                                                           |
-; |                                                                           |
+; | Calls animate_player_lines for each player in turn.                       |
+; +---------------------------------------------------------------------------+
+; | Depends on:                                                               |
+; +---------------------------------------------------------------------------+
+; | GAME_MODE           - Controls if animate_player_lines is to be           |
+; |                       for Player 2 in addition to for Player 1            |
 ; +---------------------------------------------------------------------------+
 animate_lines:
                                     ldx #$00
@@ -553,8 +656,31 @@ animate_lines:
 ; | ANIMATE_PLAYER_LINES                                                      |
 ; | animate_player_lines                                                      |
 ; +---------------------------------------------------------------------------+
+; | Advances the animation of formed lines that occur before they are shifted |
+; | out of the well.                                                          |
 ; |                                                                           |
+; | The game character set is arranged so that the cells in Screen RAM can    |
+; | simply be incremented by one to display their next animation graphic.     |
 ; |                                                                           |
+; | The screen Y coordinates of the lines to animate are found in the buffer  |
+; | PLR__FOUND_LINES, set up during the check for formed lines.               |
+; +---------------------------------------------------------------------------+
+; | Arguments:                                                                |
+; +---------------------------------------------------------------------------+
+; | X                   - Player # - $00=Player 1, $01=Player 2               |
+; +---------------------------------------------------------------------------+
+; | Depends on:                                                               |
+; +---------------------------------------------------------------------------+
+; | PLR__ANIM_FRAME     - Determines if the animation is done. The value does |
+; |                       does not otherwise influence the animation. Is      |
+; |                       decreased by one before an animation step is        |
+; |                       performed                                           |
+; |                                                                           |
+; | PLR__ANIM_COUNTER   - Frames/calls left until the next animation step is  |
+; |                       is to be performed. Resets it reaches zero.         |
+; |                                                                           |
+; | PLR__FOUND_LINES    - Contains the Y coordinates of the lines that are to |
+; |                       be animated.                                        |
 ; +---------------------------------------------------------------------------+
 animate_player_lines:
                                     lda PLR__ANIM_FRAME,x               ; Check if animation frame counter is zero.
@@ -573,7 +699,7 @@ animate_player_lines:
 
                                     jsr shift_well_contents             ;
                                     ldx CURRENT_PLAYER
-                                    jsr prepare_next_tetrominoe
+                                    jsr roll_new_tetronimo
 
                                     jmp animation_done
 
@@ -621,27 +747,18 @@ set_player_line_pointer:
 
                                     rts
 
-
 ; +---------------------------------------------------------------------------+
 ; | CHECK FOR LINES                                                           |
 ; | check_for_lines                                                           |
 ; +---------------------------------------------------------------------------+
-; | Check a players well for new lines. Must be called after a tetromino has  |
+; | Checks a players well for new lines. Must be called after a tetromino has |
 ; | been placed, and before the players next tetronimo is activated, as this  |
 ; | routine uses the shape and coordinates of the players current tetronimo   |
 ; | to determine which rows to check.                                         |
-; |                                                                           |
-; |                                                                           |
-; |                                                                           |
 ; +---------------------------------------------------------------------------+
 ; | Arguments:                                                                |
 ; +---------------------------------------------------------------------------+
 ; | X               - Player. $00=Player 1, $01=Player 2                      |
-; +---------------------------------------------------------------------------+
-; | Affects:                                                                  |
-; +---------------------------------------------------------------------------+
-; |                                                                           |
-; |                                                                           |
 ; +---------------------------------------------------------------------------+
 ; | Returns:                                                                  |
 ; +---------------------------------------------------------------------------+
@@ -696,7 +813,7 @@ check_for_lines_loop                lda LINE_CHECK_BUFFER,x                     
                                     txa                                         ; Add tetronimo block Y to cell Y
                                     clc                                         ; to get actual screen row
                                     ldy CURRENT_PLAYER
-                                    adc PLR__TETROMINOE_Y,y
+                                    adc PLR__TETROMINO_Y,y
                                     sta tmp_cell_y
                                     asl                                         ; Multiply screen row with 2 to get index
                                     tay                                         ; in screen line table
@@ -739,52 +856,119 @@ tmp_well_offset                     .byte $00
 tmp_cell_y                          .byte $00
 
 ; +---------------------------------------------------------------------------+
-; | PREPARE NEXT TETROMINOE                                                   |
-; | place_tetrominoe                                                          |
+; | PREPARE NEXT TETROMINO                                                    |
+; | place_tetromino                                                           |
 ; +---------------------------------------------------------------------------+
-; |                                                                           |
-; |                                                                           |
+; | Randomizes a new tetromino shape and its appearance and stores to         |
+; | the next-tetromino registers for Player X                                 |
 ; +---------------------------------------------------------------------------+
 ; | Arguments:                                                                |
 ; +---------------------------------------------------------------------------+
 ; | X           - Player index. $00=Player 1, $01=Player 2                    |
 ; +---------------------------------------------------------------------------+
-prepare_next_tetrominoe
-                                    lda #$07                    ; Get a random tetromino index
-                                    jsr get_random_number
-                                    tay
-                                    jsr set_player_tetrominoe   ; Copy tetromino shape to player #X buffer
+; | Affects:                                                                  |
+; +---------------------------------------------------------------------------+
+; | PLR__NEXT_TETROMINO_TYPE    - The new shape index                         |
+; | PLR__NEXT_TETROMINO_FACE    - The char index of the tetromino cells       |
+; | PLR__NEXT_TETROMINO_COLOR   - The color of the next tetromino.            |
+; +---------------------------------------------------------------------------+
+prepare_next_tetromino:
 
-                                    lda #$04                    ; Set tetromino coordinates to top of players well
-                                    adc PLR__WELL_OFFSET,x
-                                    sta PLR__TETROMINOE_X,x
-                                    lda #$00
-                                    sta PLR__TETROMINOE_Y,x
+                                    lda #$07                                    ; Get a random tetromino index between
+                                    jsr get_random_number                       ; $00 and $06
+                                    sta PLR__NEXT_TETROMINO_TYPE,x              ; Store as next tetromino type for player X
 
-                                    lda #$16                    ; Randomize appearance (tile and color)
-                                    jsr get_random_number
+                                    lda #$16                                    ; Get a random appearance index between
+                                    jsr get_random_number                       ; $00 and $15
                                     asl
-                                    tay
-                                    lda table_tetrominoe_appearance, y
-                                    sta PLR__CURRENT_TETROMINOE_FACE,x
-                                    lda table_tetrominoe_appearance+1, y
-                                    sta PLR__CURRENT_TETROMINOE_COLOR,x
+                                    tay                                         ; Multiply by two to get 16-bit table offset
+
+                                    lda table_tetromino_appearance,y            ; Set next tetromino char
+                                    sta PLR__NEXT_TETROMINO_FACE,x
+
+                                    lda table_tetromino_appearance+1,y          ; Set next tetromino color
+                                    sta PLR__NEXT_TETROMINO_COLOR,x
 
                                     rts
 
+roll_new_tetronimo:
+                                    lda PLR__NEXT_TETROMINO_FACE,x              ; Copy next tetromino char to current
+                                    sta PLR__CURRENT_TETROMINO_FACE,x
 
+                                    lda PLR__NEXT_TETROMINO_COLOR,x             ; Copy next tetromino color to current
+                                    sta PLR__CURRENT_TETROMINO_COLOR,x
 
+                                    lda PLR__NEXT_TETROMINO_TYPE,x              ; Copy next tetromino type to current
+                                    sta PLR__CURRENT_TETROMINO_TYPE,x
+
+                                    tay                                         ; Load tetromino shape into players buffer
+                                    jsr set_player_tetromino                    ; to prepare for blanking out previous nextbox
+
+                                    clc
+                                    lda #$00                                    ; Set black draw color
+                                    sta DRAW_TETR__COLOR
+
+                                    lda #$20                                    ; Set empty draw char
+                                    sta DRAW_TETR__CHAR
+
+                                    clc
+                                    lda PLR__NEXTBOX_OFFSET,x                   ; Load next box offset for player X
+                                    adc #$01
+                                    sta PLR__TETROMINO_X,x                      ; and store as tetromino X coordinate
+
+                                    lda #$03                                    ; Set 03 as tetromino Y
+                                    sta PLR__TETROMINO_Y,x
+
+                                    stx CURRENT_PLAYER                          ; Stash away player index
+                                    jsr draw_player_tetromino                   ; Clear next tetromino box
+
+                                    ldx CURRENT_PLAYER                          ; Restore player index
+                                    jsr prepare_next_tetromino                  ; Set up a new random next tetromino
+
+                                    lda PLR__NEXT_TETROMINO_FACE,x              ; Load new next tetromino properties to
+                                    sta DRAW_TETR__CHAR                         ; draw variables
+                                    lda PLR__NEXT_TETROMINO_COLOR,x
+                                    sta DRAW_TETR__COLOR
+
+                                    ldy PLR__NEXT_TETROMINO_TYPE,x              ; Load new next tetromino type as argument
+                                    jsr set_player_tetromino                    ; and load shape into players buffer
+                                    jsr draw_player_tetromino                   ; And draw it to the next box
+
+                                    ldx CURRENT_PLAYER                          ; Restore current player index
+
+                                    lda PLR__CURRENT_TETROMINO_FACE,x           ; Load new current tetromino properties
+                                    sta DRAW_TETR__CHAR                         ; to draw variables
+                                    lda PLR__CURRENT_TETROMINO_COLOR,x
+                                    sta DRAW_TETR__COLOR
+
+                                    ldy PLR__CURRENT_TETROMINO_TYPE,x           ; Load new current tetromino type as argument
+                                    jsr set_player_tetromino                    ; and load shape into players buffer
+
+                                    lda #$04                                    ; Set tetromino coordinates to top of players well
+                                    adc PLR__WELL_OFFSET,x
+                                    sta PLR__TETROMINO_X,x
+                                    lda #$00
+                                    sta PLR__TETROMINO_Y,x
+
+                                    jsr draw_player_tetromino                   ; Draw new tetromino to the screen
+
+                                    rts
 
 ; +---------------------------------------------------------------------------+
 ; | COPY TETROMINO BUFFER TO PREDICATE BUFFER                                 |
 ; | copy_buffer_to_predicate                                                  |
 ; +---------------------------------------------------------------------------+
+; | Copies the contents of a source tetromino buffer into the predicate       |
+; | buffer used to check if movement or rotation is valid.                    |
 ; |                                                                           |
+; | During the copy, the Y coordinate of each cell is modified to include     |
+; | the screen Y offset.                                                      |
 ; +---------------------------------------------------------------------------+
 ; | Arguments:                                                                |
 ; +---------------------------------------------------------------------------+
 ; | X               - Buffer index. $00=Player 1 buffer                       |
 ; |                                 $01=Player 2 buffer                       |
+; |                                 $02=Rotation buffer                       |
 ; +---------------------------------------------------------------------------+
 ; | Affects:                                                                  |
 ; +---------------------------------------------------------------------------+
@@ -820,8 +1004,8 @@ copy_to_pred_loop                   txa                             ; Copy bytes
                                     rts
 
 ; +---------------------------------------------------------------------------+
-; | SET PLAYER TETROMINOE                                                     |
-; | set_player_tetrominoe                                                     |
+; | SET PLAYER TETROMINO                                                      |
+; | set_player_tetromino                                                      |
 ; +---------------------------------------------------------------------------+
 ; | Loads tetrominoe shape data and stores it to a players current tetromino  |
 ; | shape buffer, effectively setting the shape/layout of that players        |
@@ -834,12 +1018,13 @@ copy_to_pred_loop                   txa                             ; Copy bytes
 ; +---------------------------------------------------------------------------+
 ; | Affects:                                                                  |
 ; +---------------------------------------------------------------------------+
+; | Y           - Used as loop iterator                                       |
 ; | $24-$25     - Will point to the first byte of tetrominoe Y in tetrominoe  |
 ; |               data area.                                                  |
 ; | $30-31      - Will point to the first byte of tetrominoe buffer of player |
 ; |               X.                                                          |
 ; +---------------------------------------------------------------------------+
-set_player_tetrominoe
+set_player_tetromino
                                     tya                                 ; Temporarily store tile index to the stack
                                     pha
 
@@ -938,19 +1123,32 @@ evaluate_target_pos_done            rts
 ; | DRAW PLAYER TETROMINO                                                     |
 ; | draw_player_tetromino                                                     |
 ; +---------------------------------------------------------------------------+
+; | Draws a tetromino to the screen using the shape buffer and coordinate     |
+; | registers belonging to Player X.                                          |
 ; |                                                                           |
+; | Color and char/face is not read from the players registers, but taken as  |
+; | arguments as this routine is used to remove/draw over tetrominos with     |
+; | empty black chars as well.                                                |
 ; |                                                                           |
+; | This routine sets up the necessary registers and overwrites the source    |
+; | buffer addresses in the draw_tetromino routine that performs the actual   |
+; | drawing                                                                   |
 ; +---------------------------------------------------------------------------+
 ; | Arguments                                                                 |
 ; +---------------------------------------------------------------------------+
+; | X                   - Player index. $00=Player 1, $01=Player 2            |
 ; |                                                                           |
+; | DRAW_TETR__CHAR     - The char value to write to screen ram at each cell  |
+; |                       coordinate                                          |
 ; |                                                                           |
+; | DRAW_TETR__CHAR     - The value to write to color ram at for each cell    |
+; |                       coordinate                                          |
 ; +---------------------------------------------------------------------------+
 draw_player_tetromino:
-                                    lda PLR__TETROMINOE_X,x
+                                    lda PLR__TETROMINO_X,x
                                     sta DRAW_TETR__X
 
-                                    lda PLR__TETROMINOE_Y,x
+                                    lda PLR__TETROMINO_Y,x
                                     sta DRAW_TETR__Y
 
                                     txa
@@ -964,22 +1162,26 @@ draw_player_tetromino:
                                     sta draw_tetr_buf_read_x+2
                                     sta draw_tetr_buf_read_y+2
 
-                                    jmp draw_tetrominoe
+                                    jmp draw_tetromino
 
 
 ; +---------------------------------------------------------------------------+
-; | DRAW TETROMINOE                                                           |
-; | draw_tetrominoe                                                           |
+; | DRAW TETROMINO                                                            |
+; | draw_tetromino                                                            |
 ; +---------------------------------------------------------------------------+
-; |                                                                           |
-; |                                                                           |
+; | Draws a tetromino to the screen using supplised coordinates and           |
+; | appearance. The source buffer address must be written to the arguments of |
+; | the assembly instructions of draw_tetr_buf_read_y and draw_tetr_buf_read_x|
+; | before this routine is called.                                            |
 ; +---------------------------------------------------------------------------+
 ; | Arguments                                                                 |
 ; +---------------------------------------------------------------------------+
-; |                                                                           |
-; |                                                                           |
+; | DRAW_TETR__X                                                              |
+; | DRAW_TETR__Y                                                              |
+; | DRAW_TETR__FACE                                                           |
+; | DRAW_TETR__COLOR                                                          |
 ; +---------------------------------------------------------------------------+
-draw_tetrominoe:
+draw_tetromino:
                                     lda DRAW_TETR__Y                            ; Set up pointer to row in Screen RAM for
                                     asl                                         ; draw coordinate Y
                                     tax
@@ -1006,7 +1208,7 @@ draw_tetrominoe:
 draw_tetr_cell_loop                 txa
                                     asl
                                     tay
-draw_tetr_buf_read_y                lda PLAYER1__CURRENT_TETROMINOE_CELLS+1,y
+draw_tetr_buf_read_y                lda $0000+1,y                               ; Address must be overwritten by caller
                                     beq draw_tetrominoe_no_ymod
 
                                     tay
@@ -1022,7 +1224,7 @@ draw_tetrominoe_no_ymod:            pha
                                     tay
                                     pla
                                     clc
-draw_tetr_buf_read_x                adc PLAYER1__CURRENT_TETROMINOE_CELLS,y
+draw_tetr_buf_read_x                adc $0000,y                                 ; Address must be overwritten by caller
 
                                     tay
                                     lda DRAW_TETR__CHAR
@@ -1038,16 +1240,13 @@ draw_tetr_buf_read_x                adc PLAYER1__CURRENT_TETROMINOE_CELLS,y
 draw_cell_base_addr
                                     .byte $00, $00
 
-
-
-
-
 ; +---------------------------------------------------------------------------+
 ; | SHIFT WELL CONTENTS                                                       |
 ; | shift_well_contents                                                       |
 ; +---------------------------------------------------------------------------+
-; |                                                                           |
-; |                                                                           |
+; | Shifts all lines of the well above each formed line down one step.        |
+; | Currently a naive and inefficient implementation that shifts in multiple  |
+; | passes - one for each line.                                               |
 ; +---------------------------------------------------------------------------+
 shift_well_contents:
                                     lda table_found_lines_buffers,x
@@ -1068,8 +1267,6 @@ shift_well_contents_loop            txa
                                     sbc #$01
                                     sta ($2c),y
 
-;                                    dec PLAYER1__FOUND_LINES,x
-;                                    lda PLAYER1__FOUND_LINES,x
                                     bmi shift_well_next_iter
 
                                     asl
@@ -1193,12 +1390,39 @@ set_30_ptr_to_tetro_buffer:
 
                                     rts
 
+
+draw_nextbox:
+                                    tya
+                                    clc
+                                    adc table_scr_line+4
+                                    sta $30
+                                    lda table_scr_line+5
+                                    adc #$00
+                                    sta $31
+
+                                    ldx #$00
+                                    ldy #$00
+
+draw_nextbox_loop                   tya
+                                    clc
+                                    adc nextbox_data,x
+                                    tay
+                                    inx
+                                    lda nextbox_data,x
+                                    sta ($30),y
+                                    inx
+                                    cpx #$028
+                                    bne draw_nextbox_loop
+
+                                    rts
+
+
 ; +---------------------------------------------------------------------------+
 ; | CLEAR SCREEN                                                              |
 ; | clear_screen                                                              |
 ; +---------------------------------------------------------------------------+
-; |                                                                           |
-; |                                                                           |
+; | Clears the screen by setting all of Screen RAM to $20 and all of Color    |
+; | RAM to $01                                                                |
 ; +---------------------------------------------------------------------------+
 clear_screen:
 
@@ -1247,8 +1471,8 @@ random_number_ok                    rts
 ; | READ JOYSTICK INPUT                                                       |
 ; | read_joystick_input                                                       |
 ; +---------------------------------------------------------------------------+
-; |                                                                           |
-; |                                                                           |
+; | Reads input from each player in turn. If GAME_MODE specifices player 2 to |
+; | be the computer, determine_cpu_move instead of polling joystick input.    |
 ; +---------------------------------------------------------------------------+
 read_player_input:
                                     jsr read_joystick_port2
@@ -1273,8 +1497,17 @@ read_player_input_exit              rts
 ; | READ JOYSTICK - PORT 2                                                    |
 ; | read_joystick_port2                                                       |
 ; +---------------------------------------------------------------------------+
+; | Reads joystick in port 2                                                  |
+; +---------------------------------------------------------------------------+
+; | Returns:                                                                  |
+; +---------------------------------------------------------------------------+
+; | X                   - $ff if joystick is pulled left                      |
+; |                       $00 if joystick is centered horizontally            |
+; |                       $01 if joystick is pulled right                     |
 ; |                                                                           |
-; |                                                                           |
+; | Y                   - $ff if joystick is pulled up                        |
+; |                       $00 if joystick is centered vertically              |
+; |                       $01 if joystick is pulled down                      |
 ; +---------------------------------------------------------------------------+
 read_joystick_port2:
                                     lda $dc00
@@ -1303,8 +1536,17 @@ read_joystick_done                  rts
 ; | READ JOYSTICK - PORT 1                                                    |
 ; | read_joystick_port1                                                       |
 ; +---------------------------------------------------------------------------+
+; | Reads joystick in port 1                                                  |
+; +---------------------------------------------------------------------------+
+; | Returns:                                                                  |
+; +---------------------------------------------------------------------------+
+; | X                   - $ff if joystick is pulled left                      |
+; |                       $00 if joystick is centered horizontally            |
+; |                       $01 if joystick is pulled right                     |
 ; |                                                                           |
-; |                                                                           |
+; | Y                   - $ff if joystick is pulled up                        |
+; |                       $00 if joystick is centered vertically              |
+; |                       $01 if joystick is pulled down                      |
 ; +---------------------------------------------------------------------------+
 read_joystick_port1:
                                     lda $dc01
@@ -1334,15 +1576,17 @@ read_joystick1_done                 rts
 ; | DETERMINE COMPUTER PLAYER MOVE                                            |
 ; | determine_cpu_move                                                        |
 ; +---------------------------------------------------------------------------+
-; |                                                                           |
-; |                                                                           |
+; | Not implemented                                                           |
 ; +---------------------------------------------------------------------------+
 determine_cpu_move:
                                     rts
 
 well_offsets
                                     .byte $0b, $00
-                                    .byte $08, $17
+                                    .byte $07, $15
+
+nextbox_offsets                     .byte $04, $00
+                                    .byte $00, $22
 
 table_scr_line:
                                     .word SCREEN_RAM
@@ -1417,7 +1661,30 @@ tetromino_7                         .byte $02, $01
                                     .byte $03, $02
 
 
-table_tetrominoe_appearance
+nextbox_data                        .byte $00, $85
+                                    .byte $01, $83
+                                    .byte $01, $83
+                                    .byte $01, $83
+                                    .byte $01, $83
+                                    .byte $01, $86
+                                    .byte $23, $80
+                                    .byte $05, $80
+                                    .byte $23, $80
+                                    .byte $05, $80
+                                    .byte $23, $80
+                                    .byte $05, $80
+                                    .byte $23, $80
+                                    .byte $05, $80
+                                    .byte $23, $82
+                                    .byte $01, $83
+                                    .byte $01, $83
+                                    .byte $01, $83
+                                    .byte $01, $83
+                                    .byte $01, $84
+
+
+
+table_tetromino_appearance:
                                     .byte $40, $02
                                     .byte $40, $04
                                     .byte $40, $05
