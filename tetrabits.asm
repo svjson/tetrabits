@@ -97,6 +97,10 @@ PLR__CURRENT_TETROMINO_TYPE = $02e4
 PLAYER1__CURRENT_TETROMINO_TYPE = $02e4
 PLAYER2__CURRENT_TETROMINO_TYPE = $02e5
 
+PLR__TETROMINO_ROT_MOD = $02e6
+PLAYER1__CURRENT_TETROMINO_ROT_MOD = $02e6
+PLAYER2__CURRENT_TETROMINO_ROT_MOD = $02e7
+
 PLR__LINES_LO = $02f0
 PLAYER1__LINES_LO = $02f0
 PLAYER2__LINES_LO = $02f1
@@ -138,7 +142,7 @@ ANIM_SPEED = #$03
                                     sta $d020
                                     sta $d021
 
-                                    lda #%00000011
+                                    lda #%00000010
                                     sta GAME_MODE
 
                                     lda #%00011110
@@ -601,8 +605,11 @@ move_tetr__restore_tetromino        lda PLR__CURRENT_TETROMINO_FACE,x   ; Draw t
 ; | cancelled.                                                                |
 ; |                                                                           |
 ; | Rotation is done by transforming each cell coordinate like so:            |
-; | RotatedX = 3-OriginalY                                                    |
+; | RotatedX = RotationMod-OriginalY                                          |
 ; | RotatedY = OriginalX                                                      |
+; |                                                                           |
+; | Where RotationMod is a value of #$03 or #$04 depending on the tetromino   |
+; | type being rotated.                                                       |
 ; +---------------------------------------------------------------------------+
 ; | Arguments:                                                                |
 ; +---------------------------------------------------------------------------+
@@ -624,7 +631,7 @@ populate_rotate_buffer_loop         lda ($30),y                          ; Rotat
                                     sta tmp_var
                                     dey
                                     sec
-                                    lda #$03
+                                    lda PLR__TETROMINO_ROT_MOD,x
                                     sbc tmp_var
                                     sta ROTATE_BUFFER,y
                                     iny
@@ -1079,6 +1086,39 @@ prepare_next_tetromino:
 
                                     rts
 
+; +---------------------------------------------------------------------------+
+; | ROLL NEW TETRONIMO                                                        |
+; | roll_new_tetronimo                                                        |
+; +---------------------------------------------------------------------------+
+; | Rolls the queued "next tetromino" into the well and prepares a new next   |
+; | piece.                                                                    |
+; |                                                                           |
+; | First, all properties of the tetromino currently in the "next-box" are    |
+; | copied to the "current tetromino" registers, and then the shape of this   |
+; | piece is loaded into the players teromino buffer and used to blank out    |
+; | the next box.                                                             |
+; |                                                                           |
+; | Then a new tetromino is picked and loaded into the tetromino buffer to    |
+; | be drawed in the "next-box".                                              |
+; |                                                                           |
+; | And, finally, the new current tetromino piece is loaded into the players  |
+; | buffer and drawn to the well                                              |
+; +---------------------------------------------------------------------------+
+; | Arguments:                                                                |
+; +---------------------------------------------------------------------------+
+; | X           - Player index. $00=Player 1, $01=Player 2                    |
+; +---------------------------------------------------------------------------+
+; | Affects:                                                                  |
+; +---------------------------------------------------------------------------+
+; | PLR__CURRENT_TETROMINO_TYPE    - Set to the type of the queued piece      |
+; | PLR__CURRENT_TETROMINO_FACE    - Set to the face of the queued piece      |
+; | PLR__CURRENT_TETROMINO_COLOR   - Set to the color of the queued piece     |
+; | PLR__CURRENT_TETROMINO_ROT_MOD - Set tot he rotation mod of the queued pc |
+; | PLR__CURRENT_TETROMINO_CELLS   - Loaded with the shape of the queued piece|
+; | PLR__NEXT_TETROMINO_TYPE       - A new shape index                        |
+; | PLR__NEXT_TETROMINO_FACE       - A new face                               |
+; | PLR__NEXT_TETROMINO_COLOR      - A new color                              |
+; +---------------------------------------------------------------------------+
 roll_new_tetronimo:
                                     lda PLR__NEXT_TETROMINO_FACE,x              ; Copy next tetromino char to current
                                     sta PLR__CURRENT_TETROMINO_FACE,x
@@ -1086,10 +1126,13 @@ roll_new_tetronimo:
                                     lda PLR__NEXT_TETROMINO_COLOR,x             ; Copy next tetromino color to current
                                     sta PLR__CURRENT_TETROMINO_COLOR,x
 
-                                    lda PLR__NEXT_TETROMINO_TYPE,x              ; Copy next tetromino type to current
+                                    ldy PLR__NEXT_TETROMINO_TYPE,x              ; Copy next tetromino type to current
+                                    lda table_tetromino_rotation_mod,y
+                                    sta PLR__TETROMINO_ROT_MOD,x
+
+                                    tya
                                     sta PLR__CURRENT_TETROMINO_TYPE,x
 
-                                    tay                                         ; Load tetromino shape into players buffer
                                     jsr set_player_tetromino                    ; to prepare for blanking out previous nextbox
 
                                     clc
@@ -1102,6 +1145,8 @@ roll_new_tetronimo:
                                     clc
                                     lda PLR__NEXTBOX_OFFSET,x                   ; Load next box offset for player X
                                     adc #$01
+                                    ldy PLR__CURRENT_TETROMINO_TYPE,x
+                                    adc table_tetromino_well_x_mod,y
                                     sta PLR__TETROMINO_X,x                      ; and store as tetromino X coordinate
 
                                     lda #$03                                    ; Set 03 as tetromino Y
@@ -1117,6 +1162,13 @@ roll_new_tetronimo:
                                     sta DRAW_TETR__CHAR                         ; draw variables
                                     lda PLR__NEXT_TETROMINO_COLOR,x
                                     sta DRAW_TETR__COLOR
+
+                                    clc
+                                    lda PLR__NEXTBOX_OFFSET,x                   ; Load next box offset for player X
+                                    adc #$01
+                                    ldy PLR__NEXT_TETROMINO_TYPE,x
+                                    adc table_tetromino_well_x_mod,y
+                                    sta PLR__TETROMINO_X,x                      ; and store as tetromino X coordinate
 
                                     ldy PLR__NEXT_TETROMINO_TYPE,x              ; Load new next tetromino type as argument
                                     jsr set_player_tetromino                    ; and load shape into players buffer
@@ -1828,6 +1880,22 @@ table_tetro_buffers
 table_found_lines_buffers           .byte <(PLAYER1__FOUND_LINES), >(PLAYER1__FOUND_LINES)
                                     .byte <(PLAYER2__FOUND_LINES), >(PLAYER2__FOUND_LINES)
 
+table_tetromino_rotation_mod
+                                    .byte $03
+                                    .byte $04
+                                    .byte $04
+                                    .byte $03
+                                    .byte $04
+                                    .byte $04
+                                    .byte $04
+
+table_tetromino_well_x_mod          .byte $00
+                                    .byte $ff
+                                    .byte $00
+                                    .byte $01
+                                    .byte $00
+                                    .byte $00
+                                    .byte $00
 
 tetromino_data:
 tetromino_1                         .byte $01, $01
@@ -1835,10 +1903,10 @@ tetromino_1                         .byte $01, $01
                                     .byte $01, $02
                                     .byte $02, $02
 
-tetromino_2                         .byte $01, $01
-                                    .byte $01, $02
-                                    .byte $01, $03
+tetromino_2                         .byte $02, $01
+                                    .byte $02, $02
                                     .byte $02, $03
+                                    .byte $03, $03
 
 tetromino_3                         .byte $02, $01
                                     .byte $02, $02
