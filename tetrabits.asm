@@ -4,127 +4,150 @@
 .cdef "az", $01
 
 
-PLAYER1__CURRENT_TETROMINOE_CELLS = $0208
-PLAYER1__FOUND_LINES = $0210
+PLAYER1__CURRENT_TETROMINO_CELLS = $0200
 
-PLAYER2__CURRENT_TETROMINOE_CELLS = $0238
-PLAYER2__FOUND_LINES = $0240
+PLAYER2__CURRENT_TETROMINO_CELLS = $0210
 
-PREDICATE_TETROMINOE_CELLS = $0280
-PREDICATE_TETROMINOE_X = $0288
-PREDICATE_TETROMINOE_Y = $0289
+PLAYER1__FOUND_LINES = $0218
+PLAYER2__FOUND_LINES = $021c
 
-LINE_CHECK_BUFFER = $02a0
+PREDICATE_TETROMINO_CELLS = $0220
+ROTATE_BUFFER = $0228
 
-GAME_MODE = $02b0       ; Bit #0 - 0=1 Player Mode / 1=2 Player Mode,
+LINE_CHECK_BUFFER = $0230
+
+PREDICATE_TETROMINO_X = $0234
+PREDICATE_TETROMINO_Y = $0235
+
+DRAW_TETR__CHAR = $0236
+DRAW_TETR__COLOR = $0237
+
+DRAW_TETR__X = $0238
+DRAW_TETR__Y = $0239
+
+RAND_MAX = $023a
+
+CURRENT_PLAYER = $023b
+
+GAME_MODE = $023c       ; Bit #0 - 0=1 Player Mode / 1=2 Player Mode,
                         ; Bit #1 - 0=CPU Player 2 / 1=Human Player 2
 
 ;; PLAYER VARIABLES, plr#-indexed
 
-PLR__TETROMINO_X = $02c0
-PLAYER1__TETROMINO_X = $02c0
-PLAYER2__TETROMINO_X = $02c1
+PLR__TETROMINO_X = $0240
+PLAYER1__TETROMINO_X = $0240
+PLAYER2__TETROMINO_X = $0241
 
-PLR__TETROMINO_Y = $02c2
-PLAYER1__TETROMINO_Y = $02c2
-PLAYER2__TETROMINO_Y = $02c3
+PLR__TETROMINO_Y = $0242
+PLAYER1__TETROMINO_Y = $0242
+PLAYER2__TETROMINO_Y = $0243
 
-PLR__WELL_OFFSET = $02c4
-PLAYER1__WELL_OFFSET = $02c4
-PLAYER2__WELL_OFFSET = $02c5
+PLR__WELL_OFFSET = $0244
+PLAYER1__WELL_OFFSET = $0244
+PLAYER2__WELL_OFFSET = $0245
 
-PLR__CURRENT_TETROMINO_FACE = $02c6
-PLAYER1__CURRENT_TETROMINO_FACE = $02c6
-PLAYER2__CURRENT_TETROMINO_FACE = $02c7
+PLR__CURRENT_TETROMINO_FACE = $0246
+PLAYER1__CURRENT_TETROMINO_FACE = $0246
+PLAYER2__CURRENT_TETROMINO_FACE = $0247
 
-PLR__CURRENT_TETROMINO_COLOR = $02c8
-PLAYER1__CURRENT_TETROMINO_COLOR = $02c8
-PLAYER2__CURRENT_TETROMINO_COLOR = $02c9
+PLR__CURRENT_TETROMINO_COLOR = $0248
+PLAYER1__CURRENT_TETROMINO_COLOR = $0248
+PLAYER2__CURRENT_TETROMINO_COLOR = $0249
 
-PLR__ANIM_FRAME = $02ca
-PLAYER1__ANIM_FRAME = $02ca
-PLAYER2__ANIM_FRAME = $02cb
+PLR__ANIM_FRAME = $024a
+PLAYER1__ANIM_FRAME = $024a
+PLAYER2__ANIM_FRAME = $024b
 
-PLR__ANIM_COUNTER = $02cc
-PLAYER1__ANIM_COUNTER = $02cc
-PLAYER2__ANIM_COUNTER = $02cd
+PLR__ANIM_COUNTER = $024c
+PLAYER1__ANIM_COUNTER = $024c
+PLAYER2__ANIM_COUNTER = $024d
 
-PLR__FALL_COUNTER = $02ce
-PLAYER1__FALL_COUNTER = $02ce
-PLAYER2__FALL_COUNTER = $02cf
+PLR__FALL_COUNTER = $024e
+PLAYER1__FALL_COUNTER = $024e
+PLAYER2__FALL_COUNTER = $024f
 
-PLR__FALL_SPEED = $02d0
-PLAYER1__FALL_SPEED = $02d0
-PLAYER2__FALL_SPEED = $02d1
+PLR__FALL_SPEED = $0250
+PLAYER1__FALL_SPEED = $0250
+PLAYER2__FALL_SPEED = $0251
 
-PLR__ACTUAL_FALL_SPEED = $02d2
-PLAYER1__ACTUAL_FALL_SPEED = $02d2
-PLAYER2__ACTUAL_FALL_SPEED = $02d3
+PLR__ACTUAL_FALL_SPEED = $0252
+PLAYER1__ACTUAL_FALL_SPEED = $0252
+PLAYER2__ACTUAL_FALL_SPEED = $0253
 
-PLR__REPEAT_COUNTER = $02d4
-PLAYER1__REPEAT_COUNTER = $02d4
-PLAYER2__REPEAT_COUNTER = $02d5
+PLR__REPEAT_COUNTER = $0254
+PLAYER1__REPEAT_COUNTER = $0254
+PLAYER2__REPEAT_COUNTER = $0255
 
-PLR__MOVE_X = $02d6
-PLAYER1__MOVE_X = $02d6
-PLAYER2__MOVE_X = $02d7
+PLR__MOVE_X = $0256
+PLAYER1__MOVE_X = $0256
+PLAYER2__MOVE_X = $0257
 
-PLR__MOVE_Y = $02d8
-PLAYER1__MOVE_Y = $02d8
-PLAYER2__MOVE_Y = $02d9
+PLR__MOVE_Y = $0258
+PLAYER1__MOVE_Y = $0258
+PLAYER2__MOVE_Y = $0259
 
-PLR__LINES_TO_CLEAR = $02da
-PLAYER1__LINES_TO_CLEAR = $02da
-PLAYER2__LINES_TO_CLEAR = $02db
+PLR__LINES_TO_CLEAR = $025a
+PLAYER1__LINES_TO_CLEAR = $025a
+PLAYER2__LINES_TO_CLEAR = $025b
 
-PLR__NEXTBOX_OFFSET = $02dc
-PLAYER1__NEXTBOX_OFFSET = $02dc
-PLAYER2__NEXTBOX_OFFSET = $02dd
+PLR__NEXTBOX_OFFSET = $025c
+PLAYER1__NEXTBOX_OFFSET = $025c
+PLAYER2__NEXTBOX_OFFSET = $025d
 
-PLR__NEXT_TETROMINO_TYPE = $02de
-PLAYER1__NEXT_TETROMINO_TYPE = $02de
-PLAYER2__NEXT_TETROMINO_TYPE = $02df
+PLR__NEXT_TETROMINO_TYPE = $025e
+PLAYER1__NEXT_TETROMINO_TYPE = $025e
+PLAYER2__NEXT_TETROMINO_TYPE = $025f
 
-PLR__NEXT_TETROMINO_FACE = $02e0
-PLAYER1__NEXT_TETROMINO_FACE = $02e0
-PLAYER2__NEXT_TETROMINO_FACE = $02e1
+PLR__NEXT_TETROMINO_FACE = $0260
+PLAYER1__NEXT_TETROMINO_FACE = $0260
+PLAYER2__NEXT_TETROMINO_FACE = $0261
 
-PLR__NEXT_TETROMINO_COLOR = $02e2
-PLAYER1__NEXT_TETROMINO_COLOR = $02e2
-PLAYER2__NEXT_TETROMINO_COLOR = $02e3
+PLR__NEXT_TETROMINO_COLOR = $0262
+PLAYER1__NEXT_TETROMINO_COLOR = $0262
+PLAYER2__NEXT_TETROMINO_COLOR = $0263
 
-PLR__CURRENT_TETROMINO_TYPE = $02e4
-PLAYER1__CURRENT_TETROMINO_TYPE = $02e4
-PLAYER2__CURRENT_TETROMINO_TYPE = $02e5
+PLR__CURRENT_TETROMINO_TYPE = $0264
+PLAYER1__CURRENT_TETROMINO_TYPE = $0264
+PLAYER2__CURRENT_TETROMINO_TYPE = $0265
 
-PLR__TETROMINO_ROT_MOD = $02e6
-PLAYER1__CURRENT_TETROMINO_ROT_MOD = $02e6
-PLAYER2__CURRENT_TETROMINO_ROT_MOD = $02e7
+PLR__TETROMINO_ROT_MOD = $0266
+PLAYER1__CURRENT_TETROMINO_ROT_MOD = $0266
+PLAYER2__CURRENT_TETROMINO_ROT_MOD = $0267
 
-PLR__LINES_LO = $02f0
-PLAYER1__LINES_LO = $02f0
-PLAYER2__LINES_LO = $02f1
+PLR__LINES_LO = $0270
+PLAYER1__LINES_LO = $0270
+PLAYER2__LINES_LO = $0271
 
-PLR__LINES_HI = $02f2
-PLAYER1__LINES_HI = $02f2
-PLAYER2__LINES_HI = $02f3
+PLR__LINES_HI = $0272
+PLAYER1__LINES_HI = $0272
+PLAYER2__LINES_HI = $0273
+
+PLR__CURRENT_ROTATION = $0274
+PLAYER1__CURRENT_ROTATION = $0274
+PLAYER2__CURRENT_ROTATION = $0275
+
+PLR__ACTION_STATUS = $0276
+PLAYER1__ACTION_STATUS = $0276
+PLAYER2__ACTION_STATUS = $0277
+
+CPU__WELL_FLOOR = $0290
+
+CPU__STATE = $02b0
+
+CPU__TARGET_X = $02b1
+CPU__TARGET_ROTATION = $02b2
+
+CPU__COLUMN_ALT_ORDER = $02b3
+
+
+CPU__COLUMN_ALT_INDEX = $02c0
+CPU__COLUMN_ROT_INDEX = $02c1
+
+CPU__DATA_BUFFER = $02d0
+
 
 ITERATOR = $fd
-
-ROTATE_BUFFER = $024a
-
-DRAW_TETR__CHAR = $0300
-DRAW_TETR__COLOR = $0301
-
-DRAW_TETR__X = $0302
-DRAW_TETR__Y = $0303
-
-RAND_MAX = $0304
-
-CURRENT_PLAYER = $0305
-
 SCREEN_RAM = $0400
-
 ANIM_SPEED = #$03
 
 *=$0801
@@ -142,7 +165,7 @@ ANIM_SPEED = #$03
                                     sta $d020
                                     sta $d021
 
-                                    lda #%00000010
+                                    lda #%00000001
                                     sta GAME_MODE
 
                                     lda #%00011110
@@ -162,12 +185,9 @@ ANIM_SPEED = #$03
                                     sta $dc0d
                                     sta $dd0d
 
-
-
                                     lda #$80
                                     sta $d412                       ; Turn off Voice #3 and set noise enabled
                                     sta $d40f                       ; Set Voice #3 frequency
-
 
 
 ; +---------------------------------------------------------------------------+
@@ -249,7 +269,7 @@ ANIM_SPEED = #$03
                                     ldx #$00
                                     jsr print_player_line_count
                                     jsr prepare_next_tetromino
-                                    jsr roll_new_tetronimo
+                                    jsr roll_new_tetromino
 
                                     lda PLAYER1__CURRENT_TETROMINO_FACE
                                     sta DRAW_TETR__CHAR
@@ -260,7 +280,8 @@ ANIM_SPEED = #$03
 
                                     ldy PLAYER2__WELL_OFFSET
                                     cpy #$00
-                                    beq no_plr2_setup
+                                    beq game_init_done
+
                                     jsr draw_well
 
                                     ldy PLAYER2__NEXTBOX_OFFSET
@@ -277,7 +298,7 @@ ANIM_SPEED = #$03
                                     ldx #$01
                                     jsr print_player_line_count
                                     jsr prepare_next_tetromino
-                                    jsr roll_new_tetronimo
+                                    jsr roll_new_tetromino
 
                                     lda PLAYER2__CURRENT_TETROMINO_FACE
                                     sta DRAW_TETR__CHAR
@@ -286,7 +307,17 @@ ANIM_SPEED = #$03
                                     ldx #$01
                                     jsr draw_player_tetromino
 
-no_plr2_setup                       jmp main_game_loop
+                                    lda GAME_MODE
+                                    and #%00000010
+                                    bne game_init_done
+
+                                    ldy #$09
+                                    lda #$18
+init_cpu_well_tracking              sta CPU__WELL_FLOOR, y
+                                    dey
+                                    bpl init_cpu_well_tracking
+
+game_init_done                      jmp main_game_loop
 
 
 
@@ -327,11 +358,11 @@ main_game_loop:
 ; | ADVANCE TETROMINOES                                                       |
 ; | advance_tetrominoes                                                       |
 ; +---------------------------------------------------------------------------+
-; | Calls advance_player_tetronimo for each player in turn                    |
+; | Calls advance_player_tetromino for each player in turn                    |
 ; +---------------------------------------------------------------------------+
 ; | Depends on:                                                               |
 ; +---------------------------------------------------------------------------+
-; | GAME_MODE           - Controls if advance_player_tetronimo is to be       |
+; | GAME_MODE           - Controls if advance_player_tetromino is to be       |
 ; |                       for Player 2 in addition to for Player 1            |
 ; +---------------------------------------------------------------------------+
 advance_tetrominoes:
@@ -352,15 +383,15 @@ advance_tetrominoes_end             rts
 ; | ADVANCE PLAYER TETROMINO                                                  |
 ; | advance_player_tetromino                                                  |
 ; +---------------------------------------------------------------------------+
-; | Advances the tetronimo of Player X downwards through the well, and        |
+; | Advances the tetromino of Player X downwards through the well, and        |
 ; | checks for collision. If a collision is detected during downwards         |
-; | movement, then placement of tetronimo and checking for lines is initiated |
+; | movement, then placement of tetromino and checking for lines is initiated |
 ; |                                                                           |
-; | Collision detection is done by removing the tetronimo from the screen,    |
-; | copying the coordinates and contents of the players tetronimo buffer and  |
+; | Collision detection is done by removing the tetromino from the screen,    |
+; | copying the coordinates and contents of the players tetromino buffer and  |
 ; | coordinates(with Y+=1) to the predicate ditos. If any of the screen       |
-; | positions that make up the new location of the tetronimo, then a          |
-; | collision is detected and execution branches out to place_tetronimo.      |
+; | positions that make up the new location of the tetromino, then a          |
+; | collision is detected and execution branches out to place_tetromino.      |
 ; +---------------------------------------------------------------------------+
 ; | Arguments:                                                                |
 ; +---------------------------------------------------------------------------+
@@ -403,15 +434,15 @@ advance_player_tetromino:
                                     ldx CURRENT_PLAYER                  ; Retrieve the player # for the player
 
                                     lda PLR__TETROMINO_X,x              ; Load players X position and store it to the
-                                    sta PREDICATE_TETROMINOE_X          ; test/predicate block X
+                                    sta PREDICATE_TETROMINO_X           ; test/predicate block X
 
                                     lda PLR__TETROMINO_Y,x              ; Load players Y position and store it to the
-                                    sta PREDICATE_TETROMINOE_Y          ; test/predicate block Y, and then increment it by one
-                                    inc PREDICATE_TETROMINOE_Y          ; as it's the Y+1 position that we are to evaluate
+                                    sta PREDICATE_TETROMINO_Y           ; test/predicate block Y, and then increment it by one
+                                    inc PREDICATE_TETROMINO_Y           ; as it's the Y+1 position that we are to evaluate
 
                                     jsr copy_buffer_to_predicate        ; Copy players tetromino buffer to the test/predicate buffer
                                     jsr evaluate_target_pos             ; and evaluate if there is any collision at the test location
-                                    bpl place_tetrominoe                ; Branch out to place_tetromino if a collision has occurred
+                                    bpl place_tetromino                 ; Branch out to place_tetromino if a collision has occurred
 
                                     ldx CURRENT_PLAYER                  ; Otherwise, increase the Y coordinate of the tetromino
                                     inc PLR__TETROMINO_Y,x
@@ -425,8 +456,8 @@ advance__draw_tetro_in_new_pos      lda PLR__CURRENT_TETROMINO_FACE,x   ; And dr
 no_tetro_advancement                rts
 
 ; +---------------------------------------------------------------------------+
-; | PLACE_TETROMINOE                                                          |
-; | place_tetrominoe                                                          |
+; | PLACE_TETROMINO                                                           |
+; | place_tetromino                                                           |
 ; +---------------------------------------------------------------------------+
 ; | Place the tetromino at its current location and check for lines.          |
 ; | If placing this tile results in at least one full line, the player enters |
@@ -441,16 +472,28 @@ no_tetro_advancement                rts
 ; +---------------------------------------------------------------------------+
 ; | PLR__ANIM_FRAME           - Will be set if any lines are detected         |
 ; +---------------------------------------------------------------------------+
-place_tetrominoe
-                                    ldx CURRENT_PLAYER                      ; Draw the tetromino in its new and now fixed
-                                    lda PLR__CURRENT_TETROMINO_FACE,x       ; location
-                                    sta DRAW_TETR__CHAR
+place_tetromino
+                                    ldx CURRENT_PLAYER
+
+                                    lda PLR__CURRENT_TETROMINO_FACE,x       ; Draw the tetromino in its new and now fixed
+                                    sta DRAW_TETR__CHAR                     ; location
                                     lda PLR__CURRENT_TETROMINO_COLOR,x
                                     sta DRAW_TETR__COLOR
                                     jsr draw_player_tetromino
 
+                                    ldx CURRENT_PLAYER                      ; Check if current player is Player 2
+                                    beq place_tetro_check_lines             ; if not, proceed to check for lines
+
+                                    lda GAME_MODE                           ; Check if player 2 is CPU
+                                    and #%00000011
+                                    cmp #$01
+                                    bne place_tetro_check_lines             ; If not, proceed to check for lines
+
+                                    jsr update_cpu_well_model               ; Player 2 is CPU, so update the memory model of the well bottom
+
                                     ldx CURRENT_PLAYER                      ; Restore Player index to X
-                                    jsr check_for_lines                     ; Check if any lines have been formed after
+
+place_tetro_check_lines             jsr check_for_lines                     ; Check if any lines have been formed after
                                     beq place_tetr__no_lines                ; placing the tetromino
 
 place_tetr__lines_found             ldx CURRENT_PLAYER                      ; If so, initiate the animation that will
@@ -461,18 +504,18 @@ place_tetr__lines_found             ldx CURRENT_PLAYER                      ; If
                                     rts
 
 place_tetr__no_lines                ldx CURRENT_PLAYER                      ; Otherwise, just roll the next tetromino into
-                                    jsr roll_new_tetronimo                  ; into the current buffers and randomize a new next.
+                                    jsr roll_new_tetromino                  ; into the current buffers and randomize a new next.
                                     rts
 
 ; +---------------------------------------------------------------------------+
 ; | APPLY PLAYER MOVEMENT                                                     |
 ; | move_tetrominoes                                                          |
 ; +---------------------------------------------------------------------------+
-; | Calls move_player_tetronimo for each player in turn.                      |
+; | Calls move_player_tetromino for each player in turn.                      |
 ; +---------------------------------------------------------------------------+
 ; | Depends on:                                                               |
 ; +---------------------------------------------------------------------------+
-; | GAME_MODE           - Controls if move_player_tetronimo is to be          |
+; | GAME_MODE           - Controls if move_player_tetromino is to be          |
 ; |                       for Player 2 in addition to for Player 1            |
 ; +---------------------------------------------------------------------------+
 move_tetrominoes:
@@ -506,7 +549,7 @@ move_tetrominoes:
 ; |                        $01 = Right                                        |
 ; |                                                                           |
 ; | PLR__MOVE_Y,x       - Rotation or speed up downwards advancement          |
-; |                        $ff = Rotate tetronimo                             |
+; |                        $ff = Rotate tetromino                             |
 ; |                        $00 = No action                                    |
 ; |                        $01 = Speed up advancement                         |
 ; |                                                                           |
@@ -533,15 +576,15 @@ apply_player_movement               stx CURRENT_PLAYER                  ; Keep t
 
                                     ldx CURRENT_PLAYER                  ; Return current player # to X register
                                     lda PLR__MOVE_X,x                   ; Check horizontal movement input for this player
-                                    beq no_horizontal_move              ; and skip adjustment of tetronimo X if there is none
+                                    beq no_horizontal_move              ; and skip adjustment of tetromino X if there is none
 
                                     clc                                 ; Load the X position of the players tetromino and
                                     lda PLR__TETROMINO_X,x              ; and apply the non-zero X-movement modifier ($01 or $ff)
                                     adc PLR__MOVE_X,x                   ; then store as predicate X
-                                    sta PREDICATE_TETROMINOE_X
+                                    sta PREDICATE_TETROMINO_X
 
                                     lda PLR__TETROMINO_Y,x              ; Copy X position of the players tetromino to
-                                    sta PREDICATE_TETROMINOE_Y          ; predicate Y
+                                    sta PREDICATE_TETROMINO_Y           ; predicate Y
 
                                     jsr copy_buffer_to_predicate        ; Check if the target position is blocked or not
                                     jsr evaluate_target_pos
@@ -557,6 +600,9 @@ apply_player_movement               stx CURRENT_PLAYER                  ; Keep t
 
                                     lda #$03                            ; Set the repeat counter after successful movement
                                     sta PLR__REPEAT_COUNTER,x
+
+                                    lda #$00
+                                    sta PLR__ACTION_STATUS,x             ; Clear player action status
 
 no_horizontal_move                  ldx CURRENT_PLAYER
                                     lda PLR__MOVE_Y,x                   ; Check if a vertical movement command has been applied
@@ -640,15 +686,15 @@ populate_rotate_buffer_loop         lda ($30),y                          ; Rotat
                                     bne populate_rotate_buffer_loop
 
                                     lda PLR__TETROMINO_X,x               ; Move player coordinates to predicate coordinate
-                                    sta PREDICATE_TETROMINOE_X           ; registers
+                                    sta PREDICATE_TETROMINO_X            ; registers
                                     lda PLR__TETROMINO_Y,x
-                                    sta PREDICATE_TETROMINOE_Y
+                                    sta PREDICATE_TETROMINO_Y
 
                                     ldx #$02                             ; Copy the rotate buffer into the predicate buffer
                                     jsr copy_buffer_to_predicate
                                     jsr evaluate_target_pos              ; Check if new cell coordinates are all empty
 
-                                    bpl rotate_exit                      ; If not, then cancel/exit
+                                    bpl rotation_failed                  ; If not, then cancel/exit
 
                                     ldx CURRENT_PLAYER                   ; Restore Player index
                                     jsr set_30_ptr_to_tetro_buffer       ; Set $30 pointer to the tetromino buffer again
@@ -659,7 +705,22 @@ write_rotate_result_loop            lda ROTATE_BUFFER,y
                                     dey
                                     bpl write_rotate_result_loop
 
+                                    inc PLR__CURRENT_ROTATION,x
+                                    lda PLR__CURRENT_ROTATION,x
+                                    cmp #$04
+                                    bne rotate_exit
+                                    lda #$00
+                                    sta PLR__CURRENT_ROTATION,x
+                                    sta PLR__ACTION_STATUS,x             ; Clear player action status
+
 rotate_exit                         rts
+
+rotation_failed                     ldx CURRENT_PLAYER
+                                    lda #%10000000
+                                    sta PLR__ACTION_STATUS,x             ; Set player action status to failed rotation
+                                    rts
+
+
 
 tmp_var                             .byte $00
 
@@ -734,14 +795,18 @@ animate_player_lines:
 
                                     jsr shift_well_contents
                                     ldx CURRENT_PLAYER
-                                    jsr roll_new_tetronimo
+                                    jsr roll_new_tetromino
 
                                     jmp animation_done
 
 do_animate_lines
-                                    lda table_found_lines_buffers,x
+                                    txa
+                                    asl
+                                    tay
+
+                                    lda table_found_lines_buffers,y
                                     sta $24
-                                    lda table_found_lines_buffers+1,x
+                                    lda table_found_lines_buffers+1,y
                                     sta $25
 
                                     lda #$03
@@ -787,8 +852,8 @@ set_player_line_pointer:
 ; | check_for_lines                                                           |
 ; +---------------------------------------------------------------------------+
 ; | Checks a players well for new lines. Must be called after a tetromino has |
-; | been placed, and before the players next tetronimo is activated, as this  |
-; | routine uses the shape and coordinates of the players current tetronimo   |
+; | been placed, and before the players next tetromino is activated, as this  |
+; | routine uses the shape and coordinates of the players current tetromino   |
 ; | to determine which rows to check.                                         |
 ; +---------------------------------------------------------------------------+
 ; | Arguments:                                                                |
@@ -811,9 +876,13 @@ check_for_lines:
                                     lda PLR__WELL_OFFSET,x                      ; Store well column offset on screen
                                     sta tmp_well_offset                         ; to temporary variable
 
-                                    lda table_found_lines_buffers,x
+                                    txa
+                                    asl
+                                    tay
+
+                                    lda table_found_lines_buffers,y
                                     sta $24
-                                    lda table_found_lines_buffers+1,x
+                                    lda table_found_lines_buffers+1,y
                                     sta $25
 
                                     ldy #$03
@@ -843,9 +912,9 @@ populate_lcheck_buffer_loop         txa                                         
 
                                     ldx #$03
 check_for_lines_loop                lda LINE_CHECK_BUFFER,x                     ; First check that this row is included in
-                                    bmi not_a_line                              ; tetronimo shape. If not, skip
+                                    bmi not_a_line                              ; tetromino shape. If not, skip
 
-                                    txa                                         ; Add tetronimo block Y to cell Y
+                                    txa                                         ; Add tetromino block Y to cell Y
                                     clc                                         ; to get actual screen row
                                     ldy CURRENT_PLAYER
                                     adc PLR__TETROMINO_Y,y
@@ -1073,7 +1142,7 @@ prepare_next_tetromino:
                                     jsr get_random_number                       ; $00 and $06
                                     sta PLR__NEXT_TETROMINO_TYPE,x              ; Store as next tetromino type for player X
 
-                                    lda #$16                                    ; Get a random appearance index between
+                                    lda #$18                                    ; Get a random appearance index between
                                     jsr get_random_number                       ; $00 and $15
                                     asl
                                     tay                                         ; Multiply by two to get 16-bit table offset
@@ -1087,8 +1156,8 @@ prepare_next_tetromino:
                                     rts
 
 ; +---------------------------------------------------------------------------+
-; | ROLL NEW TETRONIMO                                                        |
-; | roll_new_tetronimo                                                        |
+; | ROLL NEW TETROMINO                                                        |
+; | roll_new_tetromino                                                        |
 ; +---------------------------------------------------------------------------+
 ; | Rolls the queued "next tetromino" into the well and prepares a new next   |
 ; | piece.                                                                    |
@@ -1119,7 +1188,7 @@ prepare_next_tetromino:
 ; | PLR__NEXT_TETROMINO_FACE       - A new face                               |
 ; | PLR__NEXT_TETROMINO_COLOR      - A new color                              |
 ; +---------------------------------------------------------------------------+
-roll_new_tetronimo:
+roll_new_tetromino:
                                     lda PLR__NEXT_TETROMINO_FACE,x              ; Copy next tetromino char to current
                                     sta PLR__CURRENT_TETROMINO_FACE,x
 
@@ -1192,7 +1261,20 @@ roll_new_tetronimo:
 
                                     jsr draw_player_tetromino                   ; Draw new tetromino to the screen
 
-                                    rts
+                                    ldx CURRENT_PLAYER
+                                    beq end_roll_new
+
+                                    lda GAME_MODE
+                                    and #%00000011
+                                    cmp #$01
+                                    bne end_roll_new
+
+                                    lda #$00
+                                    sta CPU__STATE
+                                    sta PLAYER2__CURRENT_ROTATION
+                                    sta best_opt__weight
+
+end_roll_new                        rts
 
 ; +---------------------------------------------------------------------------+
 ; | COPY TETROMINO BUFFER TO PREDICATE BUFFER                                 |
@@ -1230,14 +1312,14 @@ copy_to_pred_loop                   txa                             ; Copy bytes
                                     tay                             ; doing so
                                     lda ($30),y
                                     clc
-                                    adc PREDICATE_TETROMINOE_X
-                                    sta PREDICATE_TETROMINOE_CELLS,y
+                                    adc PREDICATE_TETROMINO_X
+                                    sta PREDICATE_TETROMINO_CELLS,y
 
                                     iny
                                     lda ($30),y
                                     clc
-                                    adc PREDICATE_TETROMINOE_Y
-                                    sta PREDICATE_TETROMINOE_CELLS,y
+                                    adc PREDICATE_TETROMINO_Y
+                                    sta PREDICATE_TETROMINO_CELLS,y
 
                                     dex
                                     bpl copy_to_pred_loop
@@ -1336,7 +1418,7 @@ evaluate_target_pos_loop            txa                                     ; Mu
                                     pha                                     ; Store cell index for later
 
                                     tay                                     ; Get cell Y position on screen
-                                    lda PREDICATE_TETROMINOE_CELLS+1,y
+                                    lda PREDICATE_TETROMINO_CELLS+1,y
 
                                     asl
                                     tay                                     ; Load screen offset for row
@@ -1348,12 +1430,12 @@ evaluate_target_pos_loop            txa                                     ; Mu
                                     pla                                     ; Retrieve cell index
 
                                     tay
-                                    lda PREDICATE_TETROMINOE_CELLS,y        ; Get cell X position on screen
+                                    lda PREDICATE_TETROMINO_CELLS,y         ; Get cell X position on screen
 
                                     tay                                     ; Load from screen offset+x
                                     lda ($30),y
                                     cmp #$20                                ; and verify that it is empty
-                                    bne evaluate_target_pos_done           ; otherwise, bail out with X!=0 signifying failure
+                                    bne evaluate_target_pos_done            ; otherwise, bail out with X!=0 signifying failure
 
                                     dex
                                     bpl evaluate_target_pos_loop
@@ -1449,7 +1531,7 @@ draw_tetr_cell_loop                 txa
                                     asl
                                     tay
 draw_tetr_buf_read_y                lda $0000+1,y                               ; Address must be overwritten by caller
-                                    beq draw_tetrominoe_no_ymod
+                                    beq draw_tetromino_no_ymod
 
                                     tay
                                     lda #$00
@@ -1458,7 +1540,7 @@ draw_tetr_cell_add_y_offset_loop    adc #$28
                                     dey
                                     bne draw_tetr_cell_add_y_offset_loop
 
-draw_tetrominoe_no_ymod:            pha
+draw_tetromino_no_ymod:             pha
                                     txa
                                     asl
                                     tay
@@ -1488,10 +1570,18 @@ draw_cell_base_addr
 ; | Currently a naive and inefficient implementation that shifts in multiple  |
 ; | passes - one for each line.                                               |
 ; +---------------------------------------------------------------------------+
+; | Arguments                                                                 |
+; +---------------------------------------------------------------------------+
+; | X                   - Player index. $00=Player 1, $01=Player 2            |
+; +---------------------------------------------------------------------------+
 shift_well_contents:
-                                    lda table_found_lines_buffers,x
+                                    txa                                         ;  Multiply Player # by two, to get index of
+                                    asl                                         ;  pointer to player lines buffer
+                                    tay
+
+                                    lda table_found_lines_buffers,y             ; Store pointer to player lines buffer in $2c-$2d
                                     sta $2c
-                                    lda table_found_lines_buffers+1,x
+                                    lda table_found_lines_buffers+1,y
                                     sta $2d
 
                                     lda PLR__WELL_OFFSET,x
@@ -1665,7 +1755,7 @@ draw_nextbox_loop                   tya
                                     lda nextbox_data,x
                                     sta ($30),y
                                     inx
-                                    cpx #$028
+                                    cpx #$28
                                     bne draw_nextbox_loop
 
                                     rts
@@ -1830,10 +1920,802 @@ read_joystick1_done                 rts
 ; | DETERMINE COMPUTER PLAYER MOVE                                            |
 ; | determine_cpu_move                                                        |
 ; +---------------------------------------------------------------------------+
-; | Not implemented                                                           |
+; | Determine the next move for the CPU controlled Player 2.                  |
+; |                                                                           |
+; | The output of the function is simply a case of storing the input to       |
+; | PLAYER2__MOVE_X and PLAYER2__MOVE_Y, just as if Player 2 had been         |
+; | controlled by a joystick                                                  |
+; |                                                                           |
+; | For every call to his subroutine until all alternatives have been         |
+; | been explored, an X position and a rotation for the current tetromino     |
+; | will be evaluated and scored.                                             |
+; |                                                                           |
+; | Movement will then be assigned to rotate and move the block to the        |
+; | current best option found.                                                |
+; |                                                                           |
+; | Once all options are evaluated and the tetromino is in place over the     |
+; | target column and the rotation is correct, the CPU will "press down" to   |
+; | speed up the falling block.                                               |
 ; +---------------------------------------------------------------------------+
+; | Returns:                                                                  |
+; +---------------------------------------------------------------------------+
+; | PLAYER2__MOVE_X - The horizontal "joystick" movement requested by the CPU |
+; | PLAYER2__MOVE_Y - The vertical "joystick" movement requested by the CPU   |
+; +---------------------------------------------------------------------------+
+
 determine_cpu_move:
+                                    lda #$00                                    ; Blank out any previous moves
+                                    sta PLAYER2__MOVE_X
+                                    sta PLAYER2__MOVE_Y
+
+                                    lda CPU__STATE                              ; Check if the column order for evaluation has been
+                                    and #%00000001                              ; created for the current tetromino
+                                    bne cpu__alternatives_ordered
+
+                                    jsr cpu__col_order_alternatives             ; Otherwise call subroutine to generate
+
+
+cpu__alternatives_ordered           lda CPU__STATE                              ; Check if all positions and rotations have been
+                                    and #%10000000                              ; evaluated.
+                                    bne cpu__find_target_position               ; If so, go straight to setting the next move
+
+                                    jsr cpu__evaluate_cpu_move_option           ; Else evaluate next move option
+
+
+cpu__find_target_position:
+                                    clc
+                                    lda best_opt__col_index
+                                    adc PLAYER2__WELL_OFFSET
+                                    sec
+                                    sbc #$01
+                                    sta CPU__TARGET_X
+
+                                    lda best_opt__rotation
+                                    sta CPU__TARGET_ROTATION
+
+cpu__move_towards_target:
+                                    lda CPU__TARGET_ROTATION
+                                    ;sta $0428
+                                    lda PLAYER2__CURRENT_ROTATION
+                                    ;sta $0429
+
+                                    lda CPU__TARGET_ROTATION
+                                    cmp PLAYER2__CURRENT_ROTATION
+                                    bne cpu__rotate
+
+cpu__horizontal_move:
+                                    lda CPU__TARGET_X
+                                    ;sta $0400
+                                    lda PLAYER2__TETROMINO_X
+                                    ;sta $0401
+
+                                    lda CPU__TARGET_X
+
+                                    cmp PLAYER2__TETROMINO_X
+                                    beq cpu__speed_up
+                                    bcs cpu__move_right
+                                    bcc cpu__move_left
+
                                     rts
+
+; +---------------------------------------------------------------------------+
+; | CPU OPPONENT - SPEED UP                                                   |
+; | cpu__speed_up                                                             |
+; +---------------------------------------------------------------------------+
+; |                                                                           |
+; +---------------------------------------------------------------------------+
+cpu__speed_up:
+                                    lda CPU__STATE
+                                    and #%10000000
+                                    beq no_speed_up
+
+                                    lda #$01
+                                    sta PLAYER2__MOVE_Y
+no_speed_up                         rts
+
+; +---------------------------------------------------------------------------+
+; | CPU OPPONENT - MOVE LEFT                                                  |
+; | cpu__move_left                                                            |
+; +---------------------------------------------------------------------------+
+; |                                                                           |
+; +---------------------------------------------------------------------------+
+cpu__move_left:
+                                    lda #$ff
+                                    sta PLAYER2__MOVE_X
+                                    rts
+
+; +---------------------------------------------------------------------------+
+; | CPU OPPONENT - MOVE RIGHT                                                 |
+; | cpu__move_right                                                           |
+; +---------------------------------------------------------------------------+
+; |                                                                           |
+; +---------------------------------------------------------------------------+
+cpu__move_right:
+                                    lda #$01
+                                    sta PLAYER2__MOVE_X
+                                    rts
+
+; +---------------------------------------------------------------------------+
+; | CPU OPPONENT - ROTATE                                                     |
+; | cpu__rotate                                                               |
+; +---------------------------------------------------------------------------+
+; |                                                                           |
+; +---------------------------------------------------------------------------+
+cpu__rotate:
+                                    lda PLAYER2__ACTION_STATUS
+                                    cmp #%10000000
+                                    beq cpu__move_towards_center
+
+                                    lda #$ff
+                                    sta PLAYER2__MOVE_Y
+                                    rts
+
+cpu__move_towards_center:
+                                    lda PLAYER2__WELL_OFFSET
+                                    clc
+                                    adc #$04
+                                    cmp PLAYER2__TETROMINO_X
+                                    bcs cpu__move_right
+                                    jmp cpu__move_left
+
+; +---------------------------------------------------------------------------+
+; | CPU OPPONENT - RANDOMIZE COLUMN EVALUATION ORDER                          |
+; | cpu__col_order_alternatives                                               |
+; +---------------------------------------------------------------------------+
+; |                                                                           |
+; +---------------------------------------------------------------------------+
+cpu__col_order_alternatives:
+                                    ldy #$0a
+fill_alt_loop                       tya
+                                    sta CPU__DATA_BUFFER,y
+                                    dey
+                                    bpl fill_alt_loop
+
+                                    ldy #$0a
+                                    sty CPU__COLUMN_ALT_INDEX
+fill_alt_order_loop                 iny
+                                    tya
+                                    jsr get_random_number
+                                    dey
+                                    tax
+
+                                    lda CPU__DATA_BUFFER,x
+                                    sta CPU__COLUMN_ALT_ORDER,y
+
+shift_options_loop                  inx
+                                    lda CPU__DATA_BUFFER,x
+                                    dex
+                                    sta CPU__DATA_BUFFER,x
+                                    inx
+                                    cpx CPU__COLUMN_ALT_INDEX
+                                    bcc shift_options_loop
+
+                                    dec CPU__COLUMN_ALT_INDEX
+                                    ldy CPU__COLUMN_ALT_INDEX
+
+                                    bne fill_alt_order_loop
+
+                                    lda CPU__DATA_BUFFER,y
+                                    sta CPU__COLUMN_ALT_ORDER,y
+
+                                    lda CPU__STATE
+                                    ora #%00000001
+                                    sta CPU__STATE
+
+                                    lda #$00                    ; Set rotation to 0 as first iteration
+                                    sta CPU__COLUMN_ROT_INDEX
+
+                                    rts
+
+; +---------------------------------------------------------------------------+
+; | CPU OPPONENT - UPDATE WELL MODEL                                          |
+; | update_cpu_well_model                                                     |
+; +---------------------------------------------------------------------------+
+; |                                                                           |
+; +---------------------------------------------------------------------------+
+
+;; This routine is going to assume that a tetro has just been placed, and we can safely use the tetro Y as a starting point
+update_cpu_well_model:
+                                    ldx #$09                                    ; Iterate through the columns of the previous snapshot of
+                                    lda #$18                                    ; the well "floor" to find the highest row number that is occupied
+                                    sta curr_row                                ; (lowest number as values are stored as distance from top)
+clear_well_floor_loop               ldy CPU__WELL_FLOOR,x                       ; and set all values to $18 (absolute bottom) as we go
+                                    lda #$18
+                                    sta CPU__WELL_FLOOR,x
+
+                                    tya                                         ; Compare row number to the lowest value ecountered
+                                    cmp curr_row                                ; so far (stored in curr_row).
+                                    bcs clear_well_floor_loop_next_iter         ; if row number is equal or greater, then set up next iteration
+
+                                    sta curr_row                                ; else store value as lowest encountered in curr_row
+clear_well_floor_loop_next_iter     dex
+                                    bpl clear_well_floor_loop
+
+                                    lda PLAYER2__TETROMINO_Y                    ; Compare last known value of player 2 tetromino Y
+                                    cmp curr_row                                ; (which is where last block was placed) to previous highest row
+                                    bcs clear_well_set_scr_pointer              ; Move on if Player 2 Tetromino Y is a higher value
+
+                                    sta curr_row                                ; else, set curr_row to Player 2 Y
+
+
+clear_well_set_scr_pointer          lda curr_row
+                                    asl                                         ; Set $30 pointer to the location in Screen RAM where
+                                    tax                                         ; this row begins in player 2 well
+                                    clc
+                                    lda PLAYER2__WELL_OFFSET
+                                    adc #$01
+                                    adc table_scr_line,x
+                                    sta $30
+                                    lda table_scr_line+1,x
+                                    adc #$00
+                                    sta $31
+
+                                    ldx #$0a                                    ; Set X to 10 (number of columns left to determine height of)
+
+upd_well_floor__begin_row_loop      ldy #$09                                    ; Set Y to column offset 9 (scan from right to left)
+upd_well_floor__row_loop            lda ($30),y
+                                    cmp #$20                                    ; Skip this column immediately if it is empty on this row
+                                    beq upd_well__next_pos
+
+                                    lda CPU__WELL_FLOOR,y                       ; Otherwise, check if we have previously found an occupied
+                                    cmp #$18                                    ; cell in this column by comparing to #$18(empty/default)
+                                    bne upd_well__next_pos                      ; if so, skip this column
+
+                                    lda curr_row                                ; otherwise, set the current row as the height of this column
+                                    sta CPU__WELL_FLOOR,y
+
+                                    dex                                         ; Decrease columns left to determine height of
+                                    beq well_floor_done                         ; if zero, we're done
+
+upd_well__next_pos                  dey                                         ; Decrease y to move one column left
+                                    bpl upd_well_floor__row_loop                ; Continue looping while >= 0
+
+                                    inc curr_row                                ; Move to next row
+                                    lda curr_row                                ; Compare row number to #$18 to see if we have reached the
+                                    cmp #$18                                    ; bottom, in which case the remaining columns are all empty
+                                    beq well_floor_done                         ; and we are done
+
+                                    clc                                         ; Otherwise, move the screen RAM pointer one row down
+                                    lda $30
+                                    adc #$28
+                                    sta $30
+                                    lda $31
+                                    adc #$00
+                                    sta $31
+
+                                    jmp upd_well_floor__begin_row_loop
+
+well_floor_done                     rts
+
+curr_row                           .byte $00
+
+; +---------------------------------------------------------------------------+
+; | CPU OPPONENT - EVALUATE MOVE OPTION                                       |
+; | cpu__evaluate_cpu_move_option                                             |
+; +---------------------------------------------------------------------------+
+; | Evaluates a single move option (a rotation and X position) of the current |
+; | CPU player tetromino block.                                               |
+; | The column order of evaluation is determined by CPU__COLUMN_ALT_ORDER and |
+; | CPU__COLUMN_ALT_INDEX. All rotations are tried for a column before moving |
+; | to the next.                                                              |
+; |                                                                           |
+; | For each move option the following steps are taken:                       |
+; | 1) Set pointer $30 to lookup table containing the bottom shapes of the    |
+; |    current tetromino blocks and forward to the current rotation.          |
+; |                                                                           |
+; | 2) Determine the baseline where the block would be placed if dropped in   |
+; |    this column, and set the actual block bottom values.                   |
+; |                                                                           |
+; | 3) Evaluate each bottom-facing segment of the tetromino and assign scores |
+; |    depending on contact with bottom/previously placed block and any       |
+; |    caverns formed                                                         |
+; |                                                                           |
+; | 4) Determine if the left edge (HEAD) removes any cliffs or forms a new    |
+; |    cliff, and score according to cliff offset removed or added.           |
+; |                                                                           |
+; | 5) Determine if the right edge (TAIL) removes any cliffs or forms a new   |
+; |    cliff, and score according to cliff offset removed or added.           |
+; |                                                                           |
+; | 6) Apply all accumulated negative score modifications                     |
+; |                                                                           |
+; | 7) Set this option as the best known option if the score is higher than   |
+; |    the previous best option                                               |
+; +---------------------------------------------------------------------------+
+
+cpu__evaluate_cpu_move_option
+; -------------------------------- DEBUG --------------------------------------
+;                                   lda #$03                                        ;; DEBUG SET BLOCK TYPE
+;                                   sta PLAYER2__CURRENT_TETROMINO_TYPE
+; -----------------------------------------------------------------------------
+                                    lda #$00                                        ; Reset variables used during evaluation
+                                    sta eval_opt__weight                            ; - Weight/Score of the current option
+                                    sta negative_mods                               ; - Accumulated negative score modifiers
+                                    sta positive_mods                               ; - Accumulated positive score modifiers
+
+                                    lda #$ff                                        ; Set the Y position of the previous columns contact
+                                    sta prev_contact_height                         ; with the well floor to $ff(no contact)
+
+                                    jsr cpu__set_tetromino_bottom_ptr               ; 1) Set pointer in tetro bottom table
+                                    jsr cpu__calc_option_baseline                   ; 2) Calculate baseline
+
+                                    jsr calculate_column_weights                    ; 3) Calculate score/weights for each tetro column
+                                    jsr calculate_head_weight                       ; 4) Calculate fill/cliff weights for left edge/head
+                                    jsr calculate_tail_weight                       ; 5) Calculate fill/cliff weights for right edge/head
+                                    jsr apply_negative_mods                         ; 6) Apply accumulated negative weight modifiers
+
+weight_calculation_done             jsr write_result_to_debug_area
+
+compare_to_best_option              lda eval_opt__weight                            ; If the weight is $ff, this means the option move is
+                                    cmp #$ff                                        ; not possible to make, so we are discarding it immediately
+                                    beq prepare_next_opt_rot_iteration
+
+                                    lda best_opt__weight                            ; Else, if the weight is higher the currently known
+                                    cmp eval_opt__weight                            ; best move then set this option as the best.
+                                    bcc set_new_best_option
+
+                                    jmp prepare_next_opt_rot_iteration              ; Otherwise, move directly on to setting up the next iteration
+set_new_best_option
+                                    lda eval_opt__weight
+                                    sta best_opt__weight
+
+                                    lda eval_opt__col_index
+                                    sta best_opt__col_index
+
+                                    lda eval_opt__rotation
+                                    sta best_opt__rotation
+
+                                    lda eval_opt__lines
+                                    sta best_opt__lines
+
+prepare_next_opt_rot_iteration      inc CPU__COLUMN_ROT_INDEX
+                                    lda CPU__COLUMN_ROT_INDEX
+                                    cmp #$04
+                                    bne exit_add_option
+
+                                    lda #$00
+                                    sta CPU__COLUMN_ROT_INDEX
+
+                                    inc CPU__COLUMN_ALT_INDEX
+                                    lda CPU__COLUMN_ALT_INDEX
+                                    cmp #$0b
+                                    bne exit_add_option
+
+                                    lda CPU__STATE
+                                    ora #%10000000
+                                    sta CPU__STATE
+
+exit_add_option                     rts
+
+
+
+; +---------------------------------------------------------------------------+
+; | CPU OPPONENT - CALCULATE COLUMN WEIGHTS                                   |
+; | calculate_column_weights                                                  |
+; +---------------------------------------------------------------------------+
+; |                                                                           |
+; +---------------------------------------------------------------------------+
+calculate_column_weights:
+                                    ldx eval_opt__col_index
+                                    ldy #$00
+
+opt__calc_weight_loop:
+                                    sty tetr_cell_index
+                                    lda opt__bottoms,y
+                                    bmi calc_weight__column_done
+
+                                    lda CPU__WELL_FLOOR-2,x
+                                    sec
+                                    sbc opt__bottoms,y
+
+                                    beq opt__add_contact_bonus
+
+opt__add_cavern_penalty             clc
+                                    asl
+                                    asl
+                                    adc negative_mods
+                                    sta negative_mods
+
+                                    lda #$ff
+                                    sta prev_contact_height
+
+                                    jmp opt__calc_weight__mods
+
+opt__add_contact_bonus              inc positive_mods
+                                    lda prev_contact_height
+                                    cmp #$ff
+                                    beq opt__add_contact_done
+
+                                    sbc opt__bottoms,y
+                                    bpl opt__add_contact_fill_bonus
+                                    eor #$ff
+                                    clc
+                                    adc #$01
+
+opt__add_contact_fill_bonus         clc
+                                    adc positive_mods
+                                    sta positive_mods
+
+opt__add_contact_done               lda opt__bottoms,y
+                                    sta prev_contact_height
+
+opt__calc_weight__mods              ldy positive_mods
+                                    beq calc_weight__column_done
+
+                                    jsr apply_positive_mods
+
+calc_weight__column_done            ldy tetr_cell_index
+
+                                    lda #$00
+                                    sta positive_mods
+
+                                    iny
+                                    inx
+                                    cpy #$04
+                                    bne opt__calc_weight_loop
+
+                                    rts
+
+; +---------------------------------------------------------------------------+
+; | CPU OPPONENT - CALCULATE WEIGHT - APPLY POSITIVE MODS                     |
+; | apply_positive_mods                                                       |
+; +---------------------------------------------------------------------------+
+; |                                                                           |
+; +---------------------------------------------------------------------------+
+apply_positive_mods:
+                                    lda CPU__WELL_FLOOR-2,x
+
+                                    lda eval_opt__weight
+apply_pos_mods_loop                 clc
+                                    adc CPU__WELL_FLOOR-2,x
+                                    dey
+                                    bne apply_pos_mods_loop
+
+pos_mods_applied                    sta eval_opt__weight
+
+                                    rts
+
+; +---------------------------------------------------------------------------+
+; | CPU OPPONENT - CALCULATE HEAD WEIGHT                                      |
+; | calculate_head_weight                                                     |
+; +---------------------------------------------------------------------------+
+; |                                                                           |
+; +---------------------------------------------------------------------------+
+calculate_head_weight:
+                                    ldy #$00
+                                    ldx eval_opt__col_index
+
+find_head_pos_loop                  lda opt__bottoms,y
+                                    bpl calc_head__calc_head_height
+                                    iny
+                                    inx
+                                    jmp find_head_pos_loop
+
+calc_head__calc_head_height         sec
+                                    sbc opt__head_mod
+                                    sta opt__head_height
+
+                                    cpx #$02
+                                    beq calc_head__fill
+
+                                    sec
+                                    sbc CPU__WELL_FLOOR-3,x
+                                    bpl calc_head__fill
+
+                                    eor #$ff
+                                    clc
+                                    adc #$01
+                                    sta calc_weight__cliff
+
+calc_head__add_cliff_penalty        adc negative_mods
+                                    sta negative_mods
+
+                                    lda opt__head_mod
+                                    sec
+                                    sbc calc_weight__cliff
+                                    tax
+                                    beq calc_head_done
+                                    bpl apply_head_fill_bonus
+
+                                    jmp calc_head_done
+
+
+calc_head__fill                     ldx opt__head_mod
+
+apply_head_fill_bonus               lda eval_opt__weight
+apply_head_fill_bonus_loop          clc
+                                    adc opt__bottoms,y
+                                    dex
+                                    bne apply_head_fill_bonus_loop
+
+                                    sta eval_opt__weight
+
+calc_head_done                      rts
+
+; +---------------------------------------------------------------------------+
+; | CPU OPPONENT - CALCULATE TAIL WEIGHT                                      |
+; | calculate_head_weight                                                     |
+; +---------------------------------------------------------------------------+
+; |                                                                           |
+; +---------------------------------------------------------------------------+
+calculate_tail_weight:
+                                    ldy #$03
+                                    tya
+                                    clc
+                                    adc eval_opt__col_index
+                                    tax
+
+find_tail_pos_loop                  lda opt__bottoms,y
+                                    bpl calc_tail__calc_tail_height
+                                    dey
+                                    dex
+                                    jmp find_tail_pos_loop
+
+calc_tail__calc_tail_height         sec
+                                    sbc opt__tail_mod
+                                    sta opt__tail_height
+
+                                    cpx #$0b
+                                    beq calc_tail__fill
+
+                                    sec
+                                    sbc CPU__WELL_FLOOR-1,x
+                                    bpl calc_tail__fill
+
+                                    eor #$ff
+                                    clc
+                                    adc #$01
+                                    sta calc_weight__cliff
+
+
+calc_tail__add_cliff_penalty        adc negative_mods
+                                    sta negative_mods
+
+                                    lda opt__tail_mod
+                                    sec
+                                    sbc calc_weight__cliff
+                                    tax
+                                    beq calc_tail_done
+                                    bpl apply_tail_fill_bonus
+
+                                    jmp calc_tail_done
+
+
+calc_tail__fill                     ldx opt__tail_mod
+
+apply_tail_fill_bonus               lda eval_opt__weight
+apply_tail_fill_bonus_loop          clc
+                                    adc opt__bottoms,y
+                                    dex
+                                    bne apply_tail_fill_bonus_loop
+
+                                    sta eval_opt__weight
+
+calc_tail_done                      rts
+
+; +---------------------------------------------------------------------------+
+; | CPU OPPONENT - APPLY NEGATIVE MODS                                        |
+; | apply_negative_mods                                                       |
+; +---------------------------------------------------------------------------+
+; | Apply negative mods accumulated throughout the evaluation of a move by    |
+; | shifting the weight right once for every negative modifier                |
+; +---------------------------------------------------------------------------+
+apply_negative_mods:
+                                    lda eval_opt__weight
+                                    ldy negative_mods
+                                    beq apply_negative_mods_done
+apply_negative_mods_loop            lsr
+                                    dey
+                                    bne apply_negative_mods_loop
+                                    sta eval_opt__weight
+
+apply_negative_mods_done            rts
+
+
+; +---------------------------------------------------------------------------+
+; | CPU OPPONENT - WRITE OPTION EVALUATION RESULT TO DEBUG AREA IN MEMORY     |
+; | write_result_to_debug_area                                                |
+; +---------------------------------------------------------------------------+
+; |                                                                           |
+; +---------------------------------------------------------------------------+
+write_result_to_debug_area
+                                    sta eval_opt__weight
+                                    lda eval_opt__col_index
+                                    asl
+                                    asl
+                                    asl
+                                    asl
+                                    sta tmp_var
+
+                                    lda eval_opt__rotation
+                                    asl
+                                    asl
+                                    adc tmp_var
+                                    tay
+                                    lda eval_opt__col_index
+                                    sta tmp_eval_result_area,y
+                                    lda eval_opt__rotation
+                                    sta tmp_eval_result_area+1,y
+                                    lda eval_opt__weight
+                                    sta tmp_eval_result_area+2,y
+                                    lda eval_opt__lines
+                                    sta tmp_eval_result_area+3,y
+
+                                    rts
+
+
+; +---------------------------------------------------------------------------+
+; | CPU OPPONENT - CALCULATE OPTION BASELINE AND COLUMN Y POSITIONS           |
+; | cpu__calc_option_baseline                                                 |
+; +---------------------------------------------------------------------------+
+; | Finds the baseline height value for the current tetromino's rotation and  |
+; | assigns the actual Y position to the tetro_bottoms buffer as if it would  |
+; | have been placed at the bottom of the current column                      |
+; +---------------------------------------------------------------------------+
+
+cpu__calc_option_baseline:
+                                    ldx CPU__COLUMN_ALT_INDEX
+                                    lda CPU__COLUMN_ALT_ORDER,x
+                                    tax
+                                    stx eval_opt__col_index
+
+; -------------------------------- DEBUG --------------------------------------
+;                                    lda #$01                            ; Debug column #00
+;                                    sta eval_opt__col_index
+;                                    tax
+; -----------------------------------------------------------------------------
+
+                                    lda #$18
+                                    sta opt__baseline
+
+                                    ldy #$00
+opt_bottom__find_baseline_loop      lda ($30),y                                 ; Load column bottom diff of rotated tetromino
+                                    bmi opt_bottom__next_baseline_opt           ; if negative ($ff), this column is empty - keep as is
+
+                                    cpx #$02                                    ; Check if column is out of bounds, if so this option
+                                    bcc option_is_impossible                    ; is not a possible move and we can abort further calculation
+
+                                    cpx #$0c
+                                    bcs option_is_impossible
+
+                                    clc                                         ; Add the current floor height of the corresponding well column
+                                    adc CPU__WELL_FLOOR-2,x
+
+                                    cmp opt__baseline                           ; Check to see if this is the lowest value encountered so far
+                                    bcs opt_bottom__next_baseline_opt
+
+                                    sta opt__baseline                           ; if so, store as new baseline
+
+opt_bottom__next_baseline_opt       inx                                         ; Set up next iteration
+                                    iny
+                                    cpy #$04
+                                    bne opt_bottom__find_baseline_loop
+
+
+                                    lda ($30),y
+                                    sta opt__head_mod
+
+                                    iny
+                                    lda ($30),y
+                                    sta opt__tail_mod
+
+opt_bottom_apply_baseline           ldy #$03
+opt_bottom_apply_baseline_loop      lda ($30),y
+                                    bmi store_bottom
+                                    lda opt__baseline
+                                    sec
+                                    sbc ($30),y
+store_bottom                        sta opt__bottoms,y
+                                    dey
+                                    bpl opt_bottom_apply_baseline_loop
+
+                                    rts
+
+; +---------------------------------------------------------------------------+
+; | CPU OPPONENT - MOVE_OPTION_IS_IMPOSSIBLE                                  |
+; | option_is_impossible                                                      |
+; +---------------------------------------------------------------------------+
+option_is_impossible                lda #$ff
+                                    sta eval_opt__weight
+                                    jmp weight_calculation_done
+
+
+; +---------------------------------------------------------------------------+
+; | CPU OPPONENT - SET TETROMINO BOTTOM POINTER                               |
+; | cpu__set_tetromino_bottom_ptr                                             |
+; +---------------------------------------------------------------------------+
+; | Sets pointer $30-$31 to the row in the tetromino_bottoms table that       |
+; | corresponds to the current values of PLAYER2__CURRENT_TETROMINO_TYPE and  |
+; | CPU__COLUMN_ROT_INDEX                                                     |
+; +---------------------------------------------------------------------------+
+; | Depends on:                                                               |
+; +---------------------------------------------------------------------------+
+; | PLAYER2__CURRENT_TETROMINO_TYPE - Current tetromino type/shape            |
+; |                                   ($00 - $07)                             |
+; | CPU__COLUMN_ROT_INDEX           - Rotation currently being evaluated      |
+; |                                   ($00 - $03)                             |
+; +---------------------------------------------------------------------------+
+; | Affects:                                                                  |
+; +---------------------------------------------------------------------------+
+; | $30-31                  - Forwarded to row in tetromino_bottoms table     |
+; |                           current shape and rotation                      |
+; | eval_opt__rotation      - Sets the rotation index of the currently        |
+; |                           evaluated option                                |
+; +---------------------------------------------------------------------------+
+cpu__set_tetromino_bottom_ptr:
+                                    lda #$00                                        ; Set pointer offset to #$00
+                                    clc
+                                    ldy PLAYER2__CURRENT_TETROMINO_TYPE             ; Load tetromino type for use as counter
+forward_tetr_bottoms_ptr_loop       beq fwd_tetr_done                               ; if the counter is zero, there is no more looping to be done
+                                    adc #$18                                        ; Add the size of a tetromino entry in the
+                                    dey                                             ; lookup table to the offset value.
+                                    jmp forward_tetr_bottoms_ptr_loop
+
+fwd_tetr_done                       adc #<tetromino_bottoms                         ; Add the base address to the lookup table to the offset value
+                                    sta $30
+                                    lda #>tetromino_bottoms
+                                    adc #$00                                        ; Add any carry from setting the lsb
+                                    sta $31
+
+evaluate_opt_rotation               lda CPU__COLUMN_ROT_INDEX                       ; Move Y index to rotation line in table
+                                    sta eval_opt__rotation
+                                    tay
+
+; -------------------------------- DEBUG --------------------------------------
+;                                    ldy #$00                                        ;; DEBUG SET ROTATION
+;                                    sty eval_opt__rotation
+; -----------------------------------------------------------------------------
+
+                                    lda #$00
+                                    cpy #$00
+inc_rot_offset_loop                 beq add_rot_offset
+                                    clc
+                                    adc #$06
+                                    dey
+                                    jmp inc_rot_offset_loop
+
+add_rot_offset                      clc
+                                    adc $30
+                                    sta $30
+                                    lda $31
+                                    adc #$00
+                                    sta $31
+
+                                    rts
+
+
+tetr_cell_index                     .byte $00
+
+opt__baseline                       .byte $00
+opt__head_mod                       .byte $00
+opt__tail_mod                       .byte $00
+opt__head_height                    .byte $00
+opt__tail_height                    .byte $00
+opt__bottoms                        .byte $00, $00, $00, $00
+
+positive_mods                       .byte $00
+negative_mods                       .byte $00
+
+calc_weight__fill                   .byte $00
+calc_weight__cavern                 .byte $00
+calc_weight__cliff                  .byte $00
+
+prev_contact_height                 .byte $ff
+
+
+
+
+eval_option:
+eval_opt__col_index                 .byte $00   ; Column Index
+eval_opt__rotation                  .byte $00   ; Rotation
+eval_opt__weight                    .byte $00   ; Weight/Score
+eval_opt__lines                     .byte $00   ; Resulting Lines
+
+best_option:
+best_opt__col_index                 .byte $00   ; Column Index
+best_opt__rotation                  .byte $00   ; Rotation
+best_opt__weight                    .byte $00   ; Weight/Score
+best_opt__lines                     .byte $00   ; Resulting Lines
+
 
 well_offsets
                                     .byte $0b, $00
@@ -1873,8 +2755,8 @@ table_scr_line:
                                     .word SCREEN_RAM+960
 
 table_tetro_buffers
-                                    .byte <(PLAYER1__CURRENT_TETROMINOE_CELLS), >(PLAYER1__CURRENT_TETROMINOE_CELLS)
-                                    .byte <(PLAYER2__CURRENT_TETROMINOE_CELLS), >(PLAYER2__CURRENT_TETROMINOE_CELLS)
+                                    .byte <(PLAYER1__CURRENT_TETROMINO_CELLS), >(PLAYER1__CURRENT_TETROMINO_CELLS)
+                                    .byte <(PLAYER2__CURRENT_TETROMINO_CELLS), >(PLAYER2__CURRENT_TETROMINO_CELLS)
                                     .byte <(ROTATE_BUFFER), >(ROTATE_BUFFER)
 
 table_found_lines_buffers           .byte <(PLAYER1__FOUND_LINES), >(PLAYER1__FOUND_LINES)
@@ -1898,40 +2780,77 @@ table_tetromino_well_x_mod          .byte $00
                                     .byte $00
 
 tetromino_data:
-tetromino_1                         .byte $01, $01
-                                    .byte $02, $01
-                                    .byte $01, $02
-                                    .byte $02, $02
+tetromino_1                         .byte $01, $01    ;
+                                    .byte $02, $01    ; ##
+                                    .byte $01, $02    ; ##
+                                    .byte $02, $02    ;
 
-tetromino_2                         .byte $02, $01
-                                    .byte $02, $02
-                                    .byte $02, $03
-                                    .byte $03, $03
+tetromino_2                         .byte $02, $01    ;
+                                    .byte $02, $02    ;  #
+                                    .byte $02, $03    ;  #
+                                    .byte $03, $03    ;  ##
 
-tetromino_3                         .byte $02, $01
-                                    .byte $02, $02
-                                    .byte $02, $03
-                                    .byte $01, $03
+tetromino_3                         .byte $02, $01    ;
+                                    .byte $02, $02    ;  #
+                                    .byte $02, $03    ;  #
+                                    .byte $01, $03    ; ##
 
-tetromino_4                         .byte $01, $00
-                                    .byte $01, $01
-                                    .byte $01, $02
-                                    .byte $01, $03
+tetromino_4                         .byte $01, $00    ; #
+                                    .byte $01, $01    ; #
+                                    .byte $01, $02    ; #
+                                    .byte $01, $03    ; #
 
-tetromino_5                         .byte $01, $01
-                                    .byte $02, $01
-                                    .byte $02, $02
-                                    .byte $03, $02
+tetromino_5                         .byte $01, $01    ;
+                                    .byte $02, $01    ; ##
+                                    .byte $02, $02    ;  ##
+                                    .byte $03, $02    ;
 
-tetromino_6                         .byte $02, $01
-                                    .byte $03, $01
-                                    .byte $01, $02
-                                    .byte $02, $02
+tetromino_6                         .byte $02, $01    ;
+                                    .byte $03, $01    ;  ##
+                                    .byte $01, $02    ; ##
+                                    .byte $02, $02    ;
 
-tetromino_7                         .byte $02, $01
-                                    .byte $01, $02
-                                    .byte $02, $02
-                                    .byte $03, $02
+tetromino_7                         .byte $02, $01    ;
+                                    .byte $01, $02    ;  #
+                                    .byte $02, $02    ; ###
+                                    .byte $03, $02    ;
+
+tetromino_bottoms:
+                                    .byte $ff, $00, $00, $ff,   $02, $02
+                                    .byte $ff, $00, $00, $ff,   $02, $02
+                                    .byte $ff, $00, $00, $82,   $02, $02
+                                    .byte $ff, $00, $00, $82,   $02, $02
+
+                                    .byte $ff, $ff, $00, $00,   $03, $01
+                                    .byte $ff, $00, $01, $01,   $02, $01
+                                    .byte $ff, $02, $00, $ff,   $01, $03
+                                    .byte $ff, $00, $00, $00,   $01, $02
+
+                                    .byte $ff, $00, $00, $ff,   $01, $03
+                                    .byte $ff, $00, $00, $00,   $02, $01
+                                    .byte $ff, $ff, $00, $02,   $03, $01
+                                    .byte $ff, $01, $01, $00,   $01, $02
+
+                                    .byte $ff, $00, $ff, $ff,   $04, $04
+                                    .byte $00, $00, $00, $00,   $01, $01
+                                    .byte $ff, $ff, $00, $ff,   $04, $04
+                                    .byte $00, $00, $00, $00,   $01, $01
+
+                                    .byte $ff, $01, $00, $00,   $01, $01
+                                    .byte $ff, $ff, $00, $01,   $02, $02
+                                    .byte $ff, $01, $00, $00,   $01, $01
+                                    .byte $ff, $00, $01, $ff,   $02, $02
+
+                                    .byte $ff, $00, $00, $01,   $01, $01
+                                    .byte $ff, $ff, $01, $00,   $02, $02
+                                    .byte $ff, $00, $00, $01,   $01, $01
+                                    .byte $ff, $01, $00, $ff,   $02, $02
+
+                                    .byte $ff, $00, $00, $00,   $01, $01
+                                    .byte $ff, $ff, $00, $01,   $03, $01
+                                    .byte $ff, $01, $00, $01,   $01, $01
+                                    .byte $ff, $01, $00, $ff,   $01, $03
+
 
 
 nextbox_data                        .byte $00, $85
@@ -1963,9 +2882,11 @@ table_tetromino_appearance:
                                     .byte $40, $07
                                     .byte $45, $0a
                                     .byte $45, $0e
+                                    .byte $45, $0f
                                     .byte $45, $0d
                                     .byte $4a, $04
                                     .byte $4a, $05
+                                    .byte $4a, $03
                                     .byte $4a, $06
                                     .byte $4a, $07
                                     .byte $4f, $0c
@@ -1979,6 +2900,9 @@ table_tetromino_appearance:
                                     .byte $54, $0f
                                     .byte $54, $0a
 
+*=$3000
+tmp_eval_result_area:
+                                    .byte $00
 
 *=$3800
 .binary "assets/chars.bin"
