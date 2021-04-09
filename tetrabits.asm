@@ -130,6 +130,10 @@ PLR__ACTION_STATUS = $0276
 PLAYER1__ACTION_STATUS = $0276
 PLAYER2__ACTION_STATUS = $0277
 
+PLR__QUEUED_NOISE = $0278
+PLAYER1__QUEUED_NOISE = $0278
+PLAYER2__QUEUED_NOISE = $0279
+
 CPU__WELL_FLOOR = $0290
 
 CPU__STATE = $02b0
@@ -145,10 +149,16 @@ CPU__COLUMN_ROT_INDEX = $02c1
 
 CPU__DATA_BUFFER = $02d0
 
+NOISE_FACE_BUFFER = $0300
+NOISE_COLOR_BUFFER = $0328
+
 
 ITERATOR = $fd
 SCREEN_RAM = $0400
 ANIM_SPEED = #$03
+
+
+APPEARANCE_TABLE_SIZE = #$18
 
 *=$0801
 .byte $0c, $08, $0a, $00, $9e, $20
@@ -350,6 +360,7 @@ main_game_loop:
                                     jsr read_player_input
                                     jsr move_tetrominoes
                                     jsr advance_tetrominoes
+                                    jsr handle_queued_noise
                                     jsr animate_lines
 
                                     jmp main_game_loop
@@ -791,10 +802,11 @@ animate_player_lines:
                                     dec PLR__ANIM_FRAME,x               ; Decrease animation frame counter
                                     bne do_animate_lines                ; If it is not zero, move to animate lines
 
-                                    jsr add_to_player_line_count
+                                    jsr queue_noise_for_other_plr       ; If it has reached zero, queue noise for other plr (if 2plr game)
+                                    jsr add_to_player_line_count        ; and award lines to this player...
 
-                                    jsr shift_well_contents
-                                    ldx CURRENT_PLAYER
+                                    jsr shift_well_contents             ; Shift the well contents down
+                                    ldx CURRENT_PLAYER                  ; and prepare the next tetromino for the player
                                     jsr roll_new_tetromino
 
                                     jmp animation_done
@@ -960,6 +972,286 @@ tmp_well_offset                     .byte $00
 tmp_cell_y                          .byte $00
 
 ; +---------------------------------------------------------------------------+
+; | QUEUE NOISE FOR OTHER PLAYER                                              |
+; | queue_noise_for_other_plr                                                 |
+; +---------------------------------------------------------------------------+
+; |                                                                           |
+; |                                                                           |
+; +---------------------------------------------------------------------------+
+; | Arguments:                                                                |
+; +---------------------------------------------------------------------------+
+; | X               - Player. $00=Player 1, $01=Player 2                      |
+; +---------------------------------------------------------------------------+
+queue_noise_for_other_plr:
+                                    lda GAME_MODE                ; First check if this game is a 2 player game
+                                    and #%00000001
+                                    beq end_queue_noise          ; If not, exit
+
+                                    lda PLR__LINES_TO_CLEAR,x    ; Load number of lines cleared by player
+                                    tay                          ; Move to Y and decrease by one to get index in noise table
+                                    dey                          ; (because 0 lines can never trigger noise)
+
+                                    lda table__noise_by_lines,y  ; Load amount of noise for amount of lines cleared
+                                    beq end_queue_noise          ; If zero, exit
+
+                                    pha
+
+                                    txa                          ; Get index of other player by inverting bit #0
+                                    eor #$01
+                                    tay                          ; and store to Y
+
+                                    pla
+                                    sta PLR__QUEUED_NOISE,y
+
+end_queue_noise                     rts
+
+
+
+; +---------------------------------------------------------------------------+
+; | HANDLE QUEUED NOISE                                                       |
+; | handle_queued_noise                                                       |
+; +---------------------------------------------------------------------------+
+; | Calls handle_player_queued_nose once for each player in the game.         |
+; +---------------------------------------------------------------------------+
+; | Arguments:                                                                |
+; +---------------------------------------------------------------------------+
+; | X               - Player. $00=Player 1, $01=Player 2                      |
+; +---------------------------------------------------------------------------+
+handle_queued_noise:
+                                    ldx #$00
+                                    jsr handle_player_queued_noise
+
+                                    inx
+                                    lda GAME_MODE
+                                    and #%00000001
+                                    bne handle_player_queued_noise
+
+                                    rts
+
+; +---------------------------------------------------------------------------+
+; | HANDLE QUEUED NOISE FOR PLAYER                                            |
+; | handle_player_queued_noise                                                |
+; +---------------------------------------------------------------------------+
+; | Checks if there is noise to add for Player X and verifies that no line    |
+; | removal animation is currently in progress before calling                 |
+; | handle_player_queued_noise                                                |
+; +---------------------------------------------------------------------------+
+; | Arguments:                                                                |
+; +---------------------------------------------------------------------------+
+; | X               - Player. $00=Player 1, $01=Player 2                      |
+; +---------------------------------------------------------------------------+
+; | Depends on:                                                               |
+; +---------------------------------------------------------------------------+
+; | PLR__QUEUED_NOISE,x        - The amount of noise queued for this player   |
+; | PLR__ANIM_FRAME,x          - Frames of animation left of line removal     |
+; |                              animation                                    |
+; +---------------------------------------------------------------------------+
+
+
+handle_player_queued_noise
+                                    lda PLR__QUEUED_NOISE,x                     ; Check if there is noise to add
+                                    beq cancel_handle_noise                     ; if not, cancel.
+
+                                    ldy PLR__ANIM_FRAME,x                       ; If a line animation is currently in progress,
+                                    beq add_player_queued_noise                 ; cancel noise add for as long as it is running
+
+cancel_handle_noise                 rts
+
+; +---------------------------------------------------------------------------+
+; | ADD QUEUED NOISE FOR PLAYER                                               |
+; | add_player_queued_noise                                                   |
+; +---------------------------------------------------------------------------+
+; |                                                                           |
+; |                                                                           |
+; +---------------------------------------------------------------------------+
+; | Arguments:                                                                |
+; +---------------------------------------------------------------------------+
+; | X               - Player. $00=Player 1, $01=Player 2                      |
+; | A               - Lines of noise to shift in                              |
+; +---------------------------------------------------------------------------+
+add_player_queued_noise:
+                                    stx CURRENT_PLAYER
+
+                                    tax
+                                    dex
+                                    ldy table__noise_buffer_size,x
+
+                                    jsr generate_noise
+
+add_noise__hide_plr_tetro
+                                    ldx CURRENT_PLAYER
+                                    lda #$20                            ; Set tetromino drawing to use black color and
+                                    sta DRAW_TETR__CHAR                 ; whitespace to clear position of players tetromino
+                                    lda #$00                            ; as we do not want to shift it when we move the well
+                                    sta DRAW_TETR__COLOR                ; contents
+                                    jsr draw_player_tetromino           ; Clear tetromino from the screen
+
+shift_in_queued_noise:
+                                    ldx CURRENT_PLAYER                  ; Set up pointer $30 for writing to Screen RAM and
+                                    lda #$01                            ; $28 for writing to Color RAM.
+                                    clc                                 ; We know that the first line to write to is at the
+                                    adc PLR__WELL_OFFSET,x              ; top of the screen, so it is basically Screen/Color RAM
+                                    sta $30                             ; start plus the well offset (+1 to skip the border)
+                                    sta $28
+                                    lda table_scr_line+1
+                                    sta $31
+                                    adc #$d4
+                                    sta $29
+
+                                    lda PLR__QUEUED_NOISE,x             ; Set up pointer $24 for reading from Screen RAM and
+                                    asl                                 ; pointer $26 for reading from Color RAM
+                                    tay
+                                    lda #$01                            ; Which row to read from depends on how many rows we
+                                    adc PLR__WELL_OFFSET,x              ; are going to shift, which is the same as amount of
+                                    clc                                 ; queued noise.
+                                    adc table_scr_line,y
+                                    sta $24
+                                    sta $26
+                                    lda table_scr_line+1,y
+                                    sta $25
+                                    clc
+                                    adc #$d4
+                                    sta $27
+
+                                    lda #$17                            ; How many iterations of shifting also depends on the amount
+                                    sec                                 ; of noise to add, since we don't need to shift anything that
+                                    sbc PLR__QUEUED_NOISE,x             ; is going to be overwritten by the noise
+                                    tax
+
+shift_row_up_loop                   ldy #$09                            ; Set column iterator in Y to 09
+
+shift_row_loop                      lda ($24),y                         ; Read from Screen RAM line N+PLR__QUEUED_NOISE
+                                    sta ($30),y                         ; Write to Screen RAM line N
+
+                                    lda ($26),y                         ; Read from Color RAM line N+PLR__QUEUED_NOISE
+                                    sta ($28),y                         ; Write to Color RAM line N
+
+                                    dey                                 ; Move to previous column
+                                    bpl shift_row_loop                  ; and loop until column iterator overflows to negative
+
+                                    clc                                 ; Forward Screen and Color RAM write pointers by one row
+                                    lda $30                             ; by incrementing them by #$28(dec 40) and adding any
+                                    adc #$28                            ; carry to the most significant pointer byte.
+                                    sta $30
+                                    sta $28
+
+                                    lda $31
+                                    adc #$00
+                                    sta $31
+                                    adc #$d4                            ; With screen ram at $0400, color RAM msb will always be
+                                    sta $29                             ; Screen RAM msb+#$d4
+
+                                    clc                                 ; Forward Screen and Color RAM read pointers by one row
+                                    lda $24                             ; by incrementing them by #$28(dec 40) and adding any
+                                    adc #$28                            ; carry to the most siginifact pointer byte.
+                                    sta $24
+                                    sta $26
+
+                                    lda $25
+                                    adc #$00
+                                    sta $25
+                                    adc #$d4
+                                    sta $27
+
+                                    dex                                 ; Decrease row iterator by one, and loop as long
+                                    bpl shift_row_up_loop               ; as it hasn't overflowed to negative
+
+                                    ldx CURRENT_PLAYER                  ; Set the iterator/pointer X to generated noise at the
+                                    ldy PLR__QUEUED_NOISE,x             ; end of the batch to add, by looking up the offset using
+                                    dey                                 ; the number of lines to add.
+                                    ldx table__noise_buffer_size,y
+
+write_noise_row_to_screen_loop      ldy #$09                            ; Set column iterator to #$09 for column 10
+
+write_noise_col_to_screen_loop      lda NOISE_FACE_BUFFER,x             ; Load noise char from noise buffer
+                                    sta ($30),y                         ; and store to Screen RAM
+
+                                    lda NOISE_COLOR_BUFFER,x            ; Load color value from noise buffer
+                                    sta ($28),y                         ; and store to Color RAM
+
+                                    dex                                 ; Decrease iterators
+                                    dey
+                                    bpl write_noise_col_to_screen_loop  ; Keep looping throught the inner loop until column/y overflows
+
+                                    lda #$0a                            ; Get a random number between $00 and $09 to decide
+                                    jsr get_random_number               ; where to place the empty column in this line of noise
+
+                                    tay                                 ; Move random number to pointer offset Y
+                                    lda #$20                            ; Write empty char to Screen RAM
+                                    sta ($30),y
+                                    lda #$00                            ; Write black color to Color RAM
+                                    sta ($28),y
+
+                                    cpx #$ff                            ; Check to see if we have reached the bottom of the
+                                    beq write_noise_done                ; noise buffer, in which case we are done
+
+                                    clc                                 ; else, forward Screen RAM & Color RAM pointers
+                                    lda $30                             ; to the next row by adding #$28(dec 40)
+                                    adc #$28
+                                    sta $30
+                                    sta $28
+                                    lda $31
+                                    adc #$00
+                                    sta $31
+                                    adc #$d4
+                                    sta $29
+
+                                    jmp write_noise_row_to_screen_loop  ; And loop back to write the next row
+
+write_noise_done                    ldx CURRENT_PLAYER
+
+                                    lda PLR__TETROMINO_Y,x              ; Decrease the players tetromino Y coordinate by the
+                                    sec                                 ; amount of noise we have just added
+                                    sbc PLR__QUEUED_NOISE,x
+                                    bpl add_noise__set_new_player_y     ; and check if it is less than zero, in which case
+                                    lda #$00                            ; we set it to zero.
+
+add_noise__set_new_player_y         sta PLR__TETROMINO_Y,x
+
+                                    lda PLR__CURRENT_TETROMINO_FACE,x   ; Draw the tetromino back to the screen in the new location
+                                    sta DRAW_TETR__CHAR
+                                    lda PLR__CURRENT_TETROMINO_COLOR,x
+                                    sta DRAW_TETR__COLOR
+                                    jsr draw_player_tetromino
+
+                                    ldx CURRENT_PLAYER
+
+                                    lda #$00                            ; Set the amount of queued noise to 0.
+                                    sta PLR__QUEUED_NOISE,x
+
+                                    rts
+
+; +---------------------------------------------------------------------------+
+; | GENERATE NOISE                                                            |
+; | generate_noise                                                            |
+; +---------------------------------------------------------------------------+
+; | fills the noise buffers (NOISE_FACE_BUFFER and NOISE_COLOR_BUFFER) with   |
+; | random tetromino face and colors with Y values.                           |
+; |                                                                           |
+; | Is used to generate that noise that is shifted into the bottom of a well  |
+; | when the other player scores more than one line in a move.                |
+; +---------------------------------------------------------------------------+
+; | Arguments:                                                                |
+; +---------------------------------------------------------------------------+
+; | Y               - The amount of noise to generate                         |
+; +---------------------------------------------------------------------------+
+generate_noise                      lda APPEARANCE_TABLE_SIZE                   ; Get a random appearance index between
+                                    jsr get_random_number                       ; $00 and APPEARANCE_TABLE_SIZE
+
+                                    asl
+                                    tax
+                                    lda table_tetromino_appearance,x
+                                    sta NOISE_FACE_BUFFER,y
+                                    lda table_tetromino_appearance+1,x
+                                    sta NOISE_COLOR_BUFFER,y
+
+                                    dey
+                                    bpl generate_noise
+
+                                    rts
+
+
+; +---------------------------------------------------------------------------+
 ; | ADD NUMBER OF FORMED LINES TO PLAYERS LINE COUNT                          |
 ; | add_to_player_line_count                                                  |
 ; +---------------------------------------------------------------------------+
@@ -982,6 +1274,7 @@ add_to_player_line_count:
                                     sta PLR__LINES_HI,x
                                     cld
                                     cli
+
 
 ; +---------------------------------------------------------------------------+
 ; | PRINT PLAYER LINE COUNT TO SCREEN                                         |
@@ -1142,8 +1435,8 @@ prepare_next_tetromino:
                                     jsr get_random_number                       ; $00 and $06
                                     sta PLR__NEXT_TETROMINO_TYPE,x              ; Store as next tetromino type for player X
 
-                                    lda #$18                                    ; Get a random appearance index between
-                                    jsr get_random_number                       ; $00 and $15
+                                    lda APPEARANCE_TABLE_SIZE                   ; Get a random appearance index between
+                                    jsr get_random_number                       ; $00 and APPEARANCE_TABLE_SIZE
                                     asl
                                     tay                                         ; Multiply by two to get 16-bit table offset
 
@@ -2723,6 +3016,16 @@ well_offsets
 
 nextbox_offsets                     .byte $04, $00
                                     .byte $00, $22
+
+table__noise_by_lines               .byte $00       ; 1 line  = 0 lines of noise
+                                    .byte $01       ; 2 lines = 1 line of noise
+                                    .byte $02       ; 3 lines = 2 lines of noise
+                                    .byte $04       ; 4 lines = 4 lines of noise
+
+table__noise_buffer_size            .byte $09
+                                    .byte $13
+                                    .byte $1d
+                                    .byte $27
 
 text_LINES                          .byte $04, $05
                                     .text "LINES"
