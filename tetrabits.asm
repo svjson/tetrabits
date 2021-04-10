@@ -134,6 +134,10 @@ PLR__QUEUED_NOISE = $0278
 PLAYER1__QUEUED_NOISE = $0278
 PLAYER2__QUEUED_NOISE = $0279
 
+PLR__DEATH_CHECK = $027a
+PLAYER1__DEATH_CHECK = $027a
+PLAYER2__DEATH_CHECK = $027b
+
 CPU__WELL_FLOOR = $0290
 
 CPU__STATE = $02b0
@@ -175,7 +179,7 @@ APPEARANCE_TABLE_SIZE = #$18
                                     sta $d020
                                     sta $d021
 
-                                    lda #%00000001
+                                    lda #%00000011
                                     sta GAME_MODE
 
                                     lda #%00011110
@@ -327,7 +331,11 @@ init_cpu_well_tracking              sta CPU__WELL_FLOOR, y
                                     dey
                                     bpl init_cpu_well_tracking
 
-game_init_done                      jmp main_game_loop
+game_init_done                      lda #$00
+                                    sta PLAYER1__DEATH_CHECK
+                                    sta PLAYER2__DEATH_CHECK
+
+                                    jmp main_game_loop
 
 
 
@@ -357,13 +365,115 @@ wait_until_next_frame:
 main_game_loop:
                                     jsr wait_until_next_frame
 
+                                    jsr handle_queued_noise
+                                    jsr perform_death_checks
+                                    bmi enter_death_mode
+
                                     jsr read_player_input
                                     jsr move_tetrominoes
                                     jsr advance_tetrominoes
-                                    jsr handle_queued_noise
                                     jsr animate_lines
 
                                     jmp main_game_loop
+
+
+; +---------------------------------------------------------------------------+
+; | ENTER DEATH MODE                                                          |
+; | enter_death_mode                                                          |
+; +---------------------------------------------------------------------------+
+; |                                                                           |
+; +---------------------------------------------------------------------------+
+enter_death_mode
+                                    ldx #$fb                        ; Set first row to shift to -5
+                                    stx tmp_var
+
+death_mode_next_frame               lda #$06                        ; Reset animation frame counter to $06, effectively
+                                    sta PLR__ANIM_FRAME
+
+death_mode_loop
+                                    jsr wait_until_next_frame       ; Wait until frame start
+
+                                    dec PLR__ANIM_FRAME             ; Decreate frame counter
+                                    bpl death_mode_loop             ; and unless counter has overflowed, go wait another frame
+
+                                    lda #$05                        ; Set row iterator to 5, as we are going to modify five screen rows
+                                    sta ITERATOR                    ; per frame
+
+
+death_anim__next_row                dec ITERATOR                    ; Decreaste ITERATOR to mark next row as being handled
+                                    bmi death_anim_frame_done       ; if ITERATOR underflows, all rows have been updated for this frame.
+
+                                    lda GAME_MODE                   ; In order to perform animation on both wells in a two player game,
+                                    and #%00000001                  ; CURRENT_PLAYER is used as a counter, so at the start of each
+                                    sta CURRENT_PLAYER              ; iteration, set CURRENT_PLAYER $00 or $01, for no. of plrs in game.
+
+death_anim__setup_row               inx                             ; Increase line number to update
+                                    bmi death_anim__next_row        ; if the line number is negative, then it is above the visible screen
+
+                                    cpx #$18                        ; if the line number is #$18, then it is the bottom of the well
+                                    bcs death_anim__next_row        ; and should not be updated, either
+
+                                    txa                             ; Move line number to accumulator
+                                    pha                             ; and preserve on the stack
+
+                                    asl                             ; Multiply by two to get offset in screen line table
+                                    tay                             ; and transfer back to X
+
+                                    ldx CURRENT_PLAYER
+                                    lda #$01                        ; Start with offset 1 (because well offset points to well wall)
+                                    adc PLR__WELL_OFFSET,x          ; add well offset of current player
+                                    clc
+                                    adc table_scr_line,y            ; and finally the screen line lsb
+                                    sta $30                         ; and store to $30
+
+                                    lda table_scr_line+1,y          ; Load screen line msb,
+                                    adc #$00                        ; add any carry,
+                                    sta $31                         ; and store to $31.
+
+                                    pla                             ; Retrieve line number from stack
+                                    tax                             ; and store back to X
+
+                                    ldy #$09
+
+                                    lda #$04                        ; Check if this is the first line of to animate for this frame,
+                                    cmp ITERATOR                    ; in which case we do not shift the char contents of the well,
+                                    beq death_anim_clear_line_loop  ; but blank it out using a different loop
+
+death_anim_line_loop                lda ($30),y                     ; Increase any char value in the well that is not #$20 (empty)
+                                    cmp #$20                        ; by one, in order to "animate" it.
+                                    beq death_anim_cell_next_col
+                                    clc
+                                    adc #$01
+                                    sta ($30),y
+
+death_anim_cell_next_col            dey                             ; Loop until Y underflows
+                                    bpl death_anim_line_loop
+
+                                    jmp death_anim_well_row_done
+
+death_anim_clear_line_loop          lda #$20                        ; Just set every column of the well to $20 (blank) as the final
+                                    sta ($30),y                     ; modification for this screen row as this row will not be touched
+                                    dey                             ; by the next iteration.
+                                    bpl death_anim_clear_line_loop
+
+death_anim_well_row_done            dec CURRENT_PLAYER              ; Decrease CURRENT_PLAYER by one, and go again or move to the
+                                    bmi death_anim__next_row        ; next line depending on if CURRENT_PLAYER underflows or not.
+
+                                    dex                             ; Reset line increase to make sure we animate the same row for plr 1
+                                    jmp death_anim__setup_row       ; as setup_row starts by increasing it.
+
+death_anim_frame_done
+                                    inc tmp_var                     ; All five rows have been animated for this frame (and for both players
+                                    ldx tmp_var                     ; in two player game). Unless we have already blanked out the entire
+                                    cpx #$18                        ; well, loop again starting one row down from previous frame.
+                                    beq death_loop
+                                    jmp death_mode_next_frame
+
+death_loop                                                          ; Wait here until the sun dies (for now).
+                                    jsr wait_until_next_frame
+                                    jmp death_loop
+
+
 
 ; +---------------------------------------------------------------------------+
 ; | ADVANCE TETROMINOES                                                       |
@@ -466,6 +576,7 @@ advance__draw_tetro_in_new_pos      lda PLR__CURRENT_TETROMINO_FACE,x   ; And dr
 
 no_tetro_advancement                rts
 
+
 ; +---------------------------------------------------------------------------+
 ; | PLACE_TETROMINO                                                           |
 ; | place_tetromino                                                           |
@@ -517,6 +628,144 @@ place_tetr__lines_found             ldx CURRENT_PLAYER                      ; If
 place_tetr__no_lines                ldx CURRENT_PLAYER                      ; Otherwise, just roll the next tetromino into
                                     jsr roll_new_tetromino                  ; into the current buffers and randomize a new next.
                                     rts
+
+; +---------------------------------------------------------------------------+
+; | PERFORM DEATH CHECKS                                                      |
+; | perform_death_checks                                                      |
+; +---------------------------------------------------------------------------+
+; | Calls check_for_player_death for each player in turn                      |
+; +---------------------------------------------------------------------------+
+; | Depends on:                                                               |
+; +---------------------------------------------------------------------------+
+; | GAME_MODE           - Controls if check_for_player_death is to be         |
+; |                       for Player 2 in addition to for Player 1            |
+; +---------------------------------------------------------------------------+
+; | Depends on:                                                               |
+; +---------------------------------------------------------------------------+
+; | A                   - $00 if both players survives check                  |
+; |                       $ff if any player has not survived                  |
+; |                                                                           |
+; | PLR__DEATH_CHECK,x  - $00 if player X has survived check                  |
+; |                       $ff if player X has not survived                    |
+; +---------------------------------------------------------------------------+
+
+perform_death_checks:
+                                    ldx #$00                                ; Check death state for player 1
+                                    jsr check_for_player_death
+                                    bmi perform_death_checks_end            ; and bail out if negative(death is signalled)
+
+                                    lda GAME_MODE                           ; Check game mode to see if there is
+                                    and #%00000001                          ; a player 2
+                                    beq perform_death_checks_end            ; If not, bail out
+
+                                    ldx #$01                                ; Otherwise, check death state for player 2
+                                    jsr check_for_player_death              ; leaving the result in the accumulator
+
+perform_death_checks_end            rts
+
+
+
+; +---------------------------------------------------------------------------+
+; | CHECK_FOR_PLAYER_DEATH                                                    |
+; | check_for_player_death                                                    |
+; +---------------------------------------------------------------------------+
+; | This routine has the combined function of drawing the initially drawing   |
+; | the tetromino to a players well as it first appears(or drawing it back    |
+; | after noise has been shifted in), but before that checking if there is    |
+; | anything other than blank space were the tetromino cells will be drawn.   |
+; |                                                                           |
+; | If anything else than #$20 (blank) is encountered, this means that the    |
+; | player has has lost/died.                                                 |
+; +---------------------------------------------------------------------------+
+; | Arguments:                                                                |
+; +---------------------------------------------------------------------------+
+; | X                         - $00=Player 1, $01=Player 2                    |
+; +---------------------------------------------------------------------------+
+; | Depends on:                                                               |
+; +---------------------------------------------------------------------------+
+; | PLR__TETROMINO_X                                                          |
+; | PLR__TETROMINO_Y                                                          |
+; | PLR__TETROMINO_CELLS                                                      |
+; +---------------------------------------------------------------------------+
+; | Returns:                                                                  |
+; +---------------------------------------------------------------------------+
+; | PLR__DEATH_CHECK,x        - $00=No collision, $ff=Death                   |
+; +---------------------------------------------------------------------------+
+check_for_player_death:
+                                    lda PLR__DEATH_CHECK,x                  ; Check if a death check has been queued for
+                                    bne check_player_death_condition        ; Player X, and if not exit immediately
+                                    rts
+
+check_player_death_condition:
+                                    stx CURRENT_PLAYER                      ; Store player index to CURRENT_PLAYER for safe keeping
+
+                                    lda PLR__TETROMINO_Y,x                  ; Load tetromino Y (which is usually 0 at this point)
+                                    asl                                     ; multiply by 2 to get offset in screen line table
+                                    tay
+                                    lda table_scr_line,y                    ; and store pointer to screen line in $24-$25
+                                    sta $24
+                                    lda table_scr_line+1,y
+                                    sta $25
+
+                                    jsr set_30_ptr_to_tetro_buffer          ; Set $30-$31 to first byte of players tetromino shape buffer
+
+                                    lda PLR__TETROMINO_X,x                  ; Load and store players X position and store as the base
+                                    sta tmp_var                             ; offset in tmp_var.
+
+                                    ldy #$ff                                ; Load index -1 to buffer offset counter
+
+check_death_segment_loop            iny                                     ; Move to next buffer byte (which places us at 0 for the first byte)
+                                    clc
+                                    adc ($30),y                             ; Add segment X modifier to tetromino segment offset in accumulator
+                                    pha                                     ; and store away on the stack
+
+                                    iny                                     ; Move to the next byte in buffer, which is Y modifier
+                                    sty ITERATOR                            ; store to iterator for safe keeping
+                                    lda ($30),y                             ; Load the Y modifier and transfer to X to use as a loop counter
+                                    tax                                     ; determining how many rows(#$28) to add to offset.
+
+                                    pla                                     ; Retrieve segment offset from the stack
+                                    cpx #$00                                ; Check number of rows left to add to the segment offset
+check_death_y_adjust_loop           beq check_death_y_adjust_done           ; and move on if 0.
+                                    clc
+                                    adc #$28                                ; Otherwise add a row (#$28) to the offset
+                                    dex                                     ; decrease rows left to add
+                                    jmp check_death_y_adjust_loop           ; and loop again
+
+check_death_y_adjust_done           tay                                     ; Transfer segment offset to Y, and use as index to load
+                                    lda ($24),y                             ; screen contents at screen offset+y
+                                    cmp #$20                                ; If screen contents is not $20 (blank), break out of the loop
+                                    bne death_condition_found               ; as death is upon us.
+
+                                    lda tmp_var                             ; otherwise, load the base segment offset from tmp_var
+                                    ldy ITERATOR                            ; Load position in tetromino shape buffer from ITERATOR
+                                    cpy #$07                                ; Check if we are at the end of the tetromino shape buffer
+                                    beq death_check_done                    ; in which case we have survived the death check
+
+                                    jmp check_death_segment_loop            ; otherwise, loop again
+
+death_condition_found
+                                    ldx CURRENT_PLAYER                      ; Load the current player index and signal death by writing
+                                    lda #$ff                                ; #$ff to the PLR__DEATH_CHECK variable.
+                                    sta PLR__DEATH_CHECK,x
+                                    jmp death_draw_tetro_and_exit           ; Draw the tetro and return
+
+death_check_done
+                                    ldx CURRENT_PLAYER                      ; Load the current player index and signal survival and
+                                    lda #$00                                ; death check flag handled by clearing PLR__DEATH_CHECK
+                                    sta PLR__DEATH_CHECK,x
+
+death_draw_tetro_and_exit           lda PLR__CURRENT_TETROMINO_FACE,x       ; Draw the tetromino back to the screen.
+                                    sta DRAW_TETR__CHAR
+                                    lda PLR__CURRENT_TETROMINO_COLOR,x
+                                    sta DRAW_TETR__COLOR
+
+                                    jsr draw_player_tetromino
+
+                                    ldx CURRENT_PLAYER                      ; Load the PLR__DEATH_CHECK to the accumulator as
+                                    lda PLR__DEATH_CHECK,x                  ; a return value
+                                    rts
+
 
 ; +---------------------------------------------------------------------------+
 ; | APPLY PLAYER MOVEMENT                                                     |
@@ -1208,16 +1457,11 @@ write_noise_done                    ldx CURRENT_PLAYER
 
 add_noise__set_new_player_y         sta PLR__TETROMINO_Y,x
 
-                                    lda PLR__CURRENT_TETROMINO_FACE,x   ; Draw the tetromino back to the screen in the new location
-                                    sta DRAW_TETR__CHAR
-                                    lda PLR__CURRENT_TETROMINO_COLOR,x
-                                    sta DRAW_TETR__COLOR
-                                    jsr draw_player_tetromino
-
-                                    ldx CURRENT_PLAYER
-
                                     lda #$00                            ; Set the amount of queued noise to 0.
                                     sta PLR__QUEUED_NOISE,x
+
+                                    lda #$01                            ; Queue a death check to make sure tetromino has not been
+                                    sta PLR__DEATH_CHECK,x              ; squashed against the top
 
                                     rts
 
@@ -1538,11 +1782,6 @@ roll_new_tetromino:
 
                                     ldx CURRENT_PLAYER                          ; Restore current player index
 
-                                    lda PLR__CURRENT_TETROMINO_FACE,x           ; Load new current tetromino properties
-                                    sta DRAW_TETR__CHAR                         ; to draw variables
-                                    lda PLR__CURRENT_TETROMINO_COLOR,x
-                                    sta DRAW_TETR__COLOR
-
                                     ldy PLR__CURRENT_TETROMINO_TYPE,x           ; Load new current tetromino type as argument
                                     jsr set_player_tetromino                    ; and load shape into players buffer
 
@@ -1552,7 +1791,8 @@ roll_new_tetromino:
                                     lda #$00
                                     sta PLR__TETROMINO_Y,x
 
-                                    jsr draw_player_tetromino                   ; Draw new tetromino to the screen
+                                    lda #$01                                    ; Set death check flag for this player, as we will
+                                    sta PLR__DEATH_CHECK,x                      ; check for collisions before drawing the new tetro
 
                                     ldx CURRENT_PLAYER
                                     beq end_roll_new
@@ -2531,6 +2771,10 @@ cpu__evaluate_cpu_move_option
                                     jsr cpu__set_tetromino_bottom_ptr               ; 1) Set pointer in tetro bottom table
                                     jsr cpu__calc_option_baseline                   ; 2) Calculate baseline
 
+                                    lda eval_opt__weight
+                                    cmp #$ff
+                                    beq weight_calculation_done
+
                                     jsr calculate_column_weights                    ; 3) Calculate score/weights for each tetro column
                                     jsr calculate_head_weight                       ; 4) Calculate fill/cliff weights for left edge/head
                                     jsr calculate_tail_weight                       ; 5) Calculate fill/cliff weights for right edge/head
@@ -2909,7 +3153,7 @@ store_bottom                        sta opt__bottoms,y
 ; +---------------------------------------------------------------------------+
 option_is_impossible                lda #$ff
                                     sta eval_opt__weight
-                                    jmp weight_calculation_done
+                                    rts
 
 
 ; +---------------------------------------------------------------------------+
